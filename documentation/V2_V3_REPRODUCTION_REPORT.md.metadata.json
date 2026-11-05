@@ -1,0 +1,5 @@
+{
+  "summary": "Forensic reproduction report comparing historical V2/V3 versions of OmniVoice against the current baseline on AMD Ryzen 5 CPU, detailing root causes for RTF divergence and parameter configs.",
+  "updatedAt": "2026-09-30T14:59:07.455358900Z",
+  "userFacing": true
+}

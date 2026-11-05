@@ -1,0 +1,15 @@
+services:
+  omnivoice-studio:
+    build: .
+    container_name: omnivoice-studio
+    ports:
+      - "8001:7860"
+    environment:
+      - PORT=7860
+      - OMP_NUM_THREADS=6
+      - MKL_NUM_THREADS=6
+    volumes:
+      - ./outputs:/app/outputs
+      - ./cache:/app/cache
+      - ./voices:/app/voices
+    restart: unless-stopped

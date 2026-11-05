@@ -1,0 +1,5 @@
+{
+  "summary": "V2 Golden Baseline Deep Profiling Report with exact stage-by-stage timings, CFG forward pass verification, CPU thread scaling benchmark, 3-run repeatability test, and final bottleneck classification.",
+  "updatedAt": "2026-09-30T17:23:11.622052300Z",
+  "userFacing": true
+}

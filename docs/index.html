@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>OmniVoice Studio — Cloud & Mobile Portal</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --surface: #111827;
+    --elevated: #1e293b;
+    --border: rgba(148, 163, 184, 0.18);
+    --accent: #38bdf8;
+    --btn: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px 14px 48px;
+  }
+  .container { max-width: 820px; margin: 0 auto; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+  }
+  label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+  textarea, input, select {
+    width: 100%;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 11px 12px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    outline: none;
+  }
+  .btn-primary {
+    width: 100%;
+    min-height: 50px;
+    background: var(--btn);
+    color: #fff;
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    cursor: pointer;
+  }
+  .env-list a {
+    display: block;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="topbar">
+    <div class="brand">🎙️🎬 OmniVoice Studio — V2.26 Web & Mobile Portal</div>
+    <span class="badge">● Multi-Cloud & PWA Ready</span>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <label for="api-host">🔗 Địa chỉ Máy chủ OmniVoice (HTTPS Tunnel / LAN / Localhost)</label>
+      <input type="text" id="api-host" value="http://localhost:8001" placeholder="https://xxxx.lhr.life hoặc http://10.64.18.54:8001">
+
+      <label for="script-txt">📝 Kịch bản văn bản</label>
+      <textarea id="script-txt" rows="4">Chào bạn, hôm nay thời tiết Cần Thơ rất đẹp.</textarea>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label for="mode-sel">Tốc độ AI</label>
+          <select id="mode-sel">
+            <option value="TURBO" selected>TURBO (4-Step)</option>
+            <option value="FAST">FAST (8-Step)</option>
+            <option value="QUALITY">QUALITY</option>
+          </select>
+        </div>
+        <div>
+          <label for="preset-sel">Video Preset</label>
+          <select id="preset-sel">
+            <option value="TURBO_CACHED_MUX" selected>Cached Mux (3s)</option>
+            <option value="AMD_AMF_HW">AMD Vega 8 HW</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" onclick="triggerRemote()">🚀 Tạo Giọng Đọc & Video MP4</button>
+      <div id="status-msg" style="margin-top:10px;font-size:0.84rem;color:var(--muted);"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:10px;font-size:0.92rem;">🌐 Truy Cập Nhanh Các Môi Trường</div>
+      <div class="env-list">
+        <a href="http://localhost:8001" target="_blank">💻 Desktop Studio (Localhost:8001) &rarr;</a>
+        <a href="http://localhost:8001/mobile" target="_blank">📱 Mobile PWA (Localhost:8001/mobile) &rarr;</a>
+        <a href="http://10.64.18.54:8001/mobile" target="_blank">📶 Điện Thoại Cùng Wi-Fi (10.64.18.54:8001/mobile) &rarr;</a>
+      </div>
+      <div id="media-out" style="margin-top:12px;display:none;">
+        <video id="vid-el" controls playsinline style="width:100%;border-radius:10px;"></video>
+        <audio id="aud-el" controls style="width:100%;margin-top:8px;"></audio>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+async function triggerRemote() {
+  const host = document.getElementById('api-host').value.trim().replace(/\/+$/, '');
+  const txt = document.getElementById('script-txt').value.trim();
+  const msg = document.getElementById('status-msg');
+  msg.textContent = "⏳ Đang kết nối tới " + host + "...";
+  try {
+    const fd = new FormData();
+    fd.append("text", txt);
+    fd.append("mode", document.getElementById('mode-sel').value);
+    fd.append("video_preset", document.getElementById('preset-sel').value);
+    fd.append("make_video", "true");
+    const r = await fetch(host + "/api/mobile/generate_full", { method: "POST", body: fd });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || "Lỗi xử lý");
+    msg.textContent = `✅ Hoàn tất trong ${d.total_time_sec}s (${d.video_fps} FPS)`;
+    document.getElementById('media-out').style.display = 'block';
+    document.getElementById('aud-el').src = host + "/api/mobile/media/" + encodeURIComponent(d.audio_filename);
+    if (d.video_filename) {
+      document.getElementById('vid-el').src = host + "/api/mobile/media/" + encodeURIComponent(d.video_filename);
+    }
+  } catch (e) {
+    msg.textContent = "❌ Không thể kết nối máy chủ (" + e.message + "). Hãy mở trực tiếp link HTTPS Tunnel hoặc Localhost.";
+  }
+}
+</script>
+</body>
+</html>

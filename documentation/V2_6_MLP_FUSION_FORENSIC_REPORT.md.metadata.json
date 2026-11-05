@@ -1,0 +1,5 @@
+{
+  "summary": "Forensic benchmark report evaluating MLP operator fusion paths (Fused Gate+Up, in-place buffers, TorchScript) on PyTorch 2.8 CPU for OmniVoice V2.6. Demonstrates that 97.45% of MLP time is GEMM compute and fusion creates non-contiguous stride penalties (-13.96% regression).",
+  "updatedAt": "2026-10-01T04:09:20.711697400Z",
+  "userFacing": true
+}

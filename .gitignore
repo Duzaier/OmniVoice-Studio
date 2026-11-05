@@ -1,30 +1,35 @@
+# Python & Virtual Environments
 __pycache__/
-*.pyc
-*.pyo
-*.egg-info/
-*.egg
-dist/
-build/
-.venv/
-.env
-.DS_Store
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+*.py[cod]
+*$py.class
 *.so
-/.cache*
-/exp*/
-/.tmp/
-/results/
-/data/
-/download
-/local/
-/run*
-example.py
-results/
-examples/data*
-examples/download*
-examples/exp*
-.claude/
-*.wav
-*.jsonl
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Model Weights & Heavy Caches (Linked via Junctions Locally)
+models/
+cache/
+temp/
+logs/
+debug/
+
+# Large Media Outputs (Keep directory structure, ignore heavy wav/mp4 binaries)
+outputs/*.mp4
+outputs/*.wav
+outputs/*.flac
+*.pt
+*.safetensors
+*.bin
+*.onnx
+
+# Keep essential voice metadata if small, ignore large raw audio in git if >50MB
+voices/*/*.pt
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

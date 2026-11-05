@@ -1,0 +1,99 @@
+{
+  "audit_version": "V2.17",
+  "golden_baseline": {
+    "git_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+    "model": "OmniVoice V2.1 Batch-1 CFG=0",
+    "num_step": 4,
+    "guidance_scale": 0.0,
+    "device": "cpu",
+    "torch_version": "2.8.0+cpu"
+  },
+  "phase_1_algorithmic_audit": {
+    "q1_teacher_prediction_type": {
+      "finding": "Discrete masked-token generative model predicting categorical distributions (logits) over 2048 codebook tokens across 8 RVQ layers.",
+      "code_reference": "omnivoice/models/omnivoice.py:1120-1175, 1360-1435"
+    },
+    "q2_unmasking_schedule": {
+      "finding": "Cosine schedule: num_unmasked = ceil(total_masked * cos(t/T * pi/2)). In 4 steps: Step 0 unmasks ~29%, Step 1 unmasks ~50%, Step 2 unmasks ~71%, Step 3 unmasks 100%.",
+      "code_reference": "omnivoice/models/omnivoice.py:1375-1390"
+    },
+    "q3_token_freezing_invariant": {
+      "finding": "Non-destructive unmasking invariant: Once a token position is unmasked, scores are set to -inf and the token is never remasked or modified in subsequent steps.",
+      "code_reference": "omnivoice/models/omnivoice.py:1410-1425"
+    },
+    "q4_confidence_scoring": {
+      "finding": "Confidence is the softmax probability of the argmax token: confidence = max(softmax(logits, dim=-1)). Highest confidence masked tokens are selected first via torch.topk.",
+      "code_reference": "omnivoice/models/omnivoice.py:1400-1415"
+    },
+    "q5_teacher_student_step_mapping": {
+      "finding": "Teacher (4 steps: 0, 1, 2, 3) mapped to Student (2 steps: 0, 1). Student Step 0 transitions x_0 (100% mask) -> x_2 (50% unmasked). Student Step 1 transitions x_2 -> x_4 (100% unmasked).",
+      "code_reference": "benchmarks/run_v2_16_distillation_poc_dryrun.py:75-115"
+    },
+    "q6_exposure_bias_distribution_shift": {
+      "finding": "CRITICAL RISK: Static teacher trajectory distillation trains Student Step 1 on Teacher's intermediate tokens (x_2). At inference, Student unmasks its own tokens (x_student_1). Any deviation in token indices causes covariate shift at Step 2.",
+      "resolution": "Implement Scheduled Sampling / Self-Rollout Mixing during GPU training, where Step 2 input combines Teacher trajectory with Student self-unmasked tokens.",
+      "code_reference": "omnivoice/models/omnivoice.py:1360-1435"
+    },
+    "q7_loss_function_formulation": {
+      "finding": "Hybrid Loss: L_total = alpha * L_CE(Student, Target) + (1 - alpha) * tau^2 * KL(Softmax(Student/tau), Softmax(Teacher/tau)). Masking applied only on actively unmasked tokens.",
+      "code_reference": "benchmarks/run_v2_16_distillation_poc_dryrun.py:120-145"
+    },
+    "q8_logit_detachment": {
+      "finding": "Teacher logits MUST be detached (teacher_logits.detach()) and teacher run under torch.no_grad() to prevent memory accumulation and backprop into frozen teacher.",
+      "code_reference": "tests/test_v2_17_distillation_forensic_audit.py:85-115"
+    },
+    "q9_codebook_weighting": {
+      "finding": "RVQ codebooks 0-7 have decaying perceptual importance. Layer 0 (acoustic structure) is weighted 1.5x while Layer 7 is weighted 0.8x for optimal voice stability.",
+      "code_reference": "omnivoice/models/omnivoice.py:510-540"
+    },
+    "q10_teacher_immutability": {
+      "finding": "Teacher weights are strictly immutable during training; parameters have requires_grad=False and are isolated from optimizer parameter groups.",
+      "code_reference": "tests/test_v2_17_distillation_forensic_audit.py:40-60"
+    }
+  },
+  "phase_4_forensic_verification_metrics": {
+    "test_1_teacher_immutability": {
+      "status": "PASSED",
+      "max_weight_delta": 0.0
+    },
+    "test_2_mask_correctness": {
+      "status": "PASSED",
+      "invariant_preserved": true,
+      "unmasked_ratio_step0": 0.5,
+      "unmasked_ratio_step1": 1.0
+    },
+    "test_3_trajectory_alignment": {
+      "status": "PASSED",
+      "teacher_logits_detached": true,
+      "loss_finite": true
+    },
+    "test_4_gradient_isolation": {
+      "status": "PASSED",
+      "teacher_grad_is_none": true,
+      "student_grad_is_valid": true
+    },
+    "test_5_overfit_tiny_batch": {
+      "status": "PASSED",
+      "initial_loss": 5.5422,
+      "final_loss": 1.1145,
+      "loss_reduction_pct": 79.9
+    },
+    "test_6_bitwise_reproducibility": {
+      "status": "PASSED",
+      "deterministic_across_runs": true
+    }
+  },
+  "decision_matrix": [
+    {"component": "Teacher Architecture", "status": "VERIFIED", "action": "Retain 8-layer RVQ transformer teacher frozen at e5a3059."},
+    {"component": "Trajectory Extraction", "status": "VERIFIED", "action": "Extract steps {0, 2, 4} from 4-step teacher rollout."},
+    {"component": "Exposure Bias (Step 2)", "status": "ACTION REQUIRED", "action": "Incorporate 50% scheduled sampling with Student self-unmasked tokens."},
+    {"component": "Loss Formulation (CE + KD)", "status": "VERIFIED", "action": "Deploy hybrid CE (alpha=0.5) + Softmax KD (tau=2.0) scaled by tau^2."},
+    {"component": "Codebook Layer Weighting", "status": "OPTIMIZATION", "action": "Apply geometric decay weights [1.5, 1.3, 1.1, 1.0, 0.9, 0.9, 0.8, 0.8]."},
+    {"component": "Teacher Freezing", "status": "VERIFIED", "action": "Enforce requires_grad=False and torch.no_grad() on Teacher."},
+    {"component": "Logit Detachment", "status": "VERIFIED", "action": "Explicit teacher_logits.detach() before KL-divergence computation."},
+    {"component": "Optimizer Isolation", "status": "VERIFIED", "action": "Pass exclusively student.parameters() to AdamW."},
+    {"component": "Bitwise Reproducibility", "status": "VERIFIED", "action": "Seed torch, numpy, random deterministically."},
+    {"component": "GPU Readiness", "status": "READY AFTER FIXES", "action": "Add scheduled sampling loop to GPU training harness."}
+  ],
+  "final_verdict": "READY AFTER FIXES"
+}

@@ -1,0 +1,5 @@
+{
+  "summary": "OMNIVOICE V2.13 — HARDWARE & RUNTIME ACCELERATION FORENSIC REPORT\nComprehensive investigation of AMD Vega 8 iGPU, Windows display drivers, DirectX/WDDM, ML runtimes (DirectML, ONNX Runtime, OpenVINO, TorchScript), operator compatibility, and acceleration pathways on AMD Ryzen 5 3450U CPU.",
+  "updatedAt": "2026-10-02T02:17:39.415084500Z",
+  "userFacing": true
+}

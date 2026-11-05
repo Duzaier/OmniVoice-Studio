@@ -1,0 +1,38 @@
+[
+  {
+    "test": "Happy Path",
+    "status": "PASS",
+    "latency_sec": 100.36,
+    "output_path": "experiments/v2_21\\audio_artifacts\\01_happy_path_output.wav",
+    "duration_sec": 2.56,
+    "sample_rate": 24000,
+    "rms": 0.0756,
+    "clipping_ratio": 0.0,
+    "status_md": "### ✅ Hoàn thành tổng hợp âm thanh! (2.56s audio, 99.80s generation)"
+  },
+  {
+    "test": "Failure Path A: Empty Text",
+    "status": "PASS",
+    "message": "### ⚠️ Vui lòng nhập văn bản cần đọc."
+  },
+  {
+    "test": "Failure Path B: Fallback Voice",
+    "status": "PASS",
+    "message": "### ✅ Hoàn thành tổng hợp âm thanh! (2.04s audio, 43.63s generation)"
+  },
+  {
+    "test": "Failure Path C: Very Short Text",
+    "status": "PASS",
+    "duration_sec": 0.92
+  },
+  {
+    "test": "Failure Path D: Chunking",
+    "status": "FAIL",
+    "error": ""
+  },
+  {
+    "test": "Failure Path E: Sequential Requests",
+    "status": "FAIL",
+    "error": "[WinError 10061] No connection could be made because the target machine actively refused it"
+  }
+]

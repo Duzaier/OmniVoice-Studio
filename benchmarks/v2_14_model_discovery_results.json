@@ -1,0 +1,142 @@
+{
+  "timestamp": "2026-10-02 09:30:00",
+  "baseline_verification": {
+    "git_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+    "git_branch": "master",
+    "status": "VERIFIED_CLEAN",
+    "hardware": {
+      "cpu": "AMD Ryzen 5 3450U (4C/8T Zen+)",
+      "ram_gb": 16.0,
+      "gpu": "AMD Radeon Vega 8 Mobile iGPU",
+      "os": "Windows 11",
+      "python": "3.13.15",
+      "pytorch": "2.8.0+cpu"
+    },
+    "omnivoice_v2_1_baseline": {
+      "parameters": "~600M (Qwen3 28L + Higgs Vocoder)",
+      "inference_config": "FP32, Batch-1, CFG=0, num_step=4, 6 threads",
+      "measured_rtf": 4.44,
+      "vietnamese_quality": "Full 6 tones, high intelligibility, arbitrary zero-shot cloning",
+      "time_for_90s_audio": "~400s (Target: <=90s)"
+    }
+  },
+  "candidate_models": [
+    {
+      "name": "viXTTS (XTTS-v2 Vietnamese)",
+      "category": "Group A / Group B: Multilingual Zero-Shot Voice Cloning",
+      "repository": "https://github.com/thinhlpg/vixtts-demo",
+      "architecture": "Autoregressive GPT (~460M) + HifiGAN + Perceiver Speaker Encoder",
+      "parameters": "~460M",
+      "checkpoint_size_gb": 1.8,
+      "license": "Coqui Public Model License / CPML (Non-commercial without waiver)",
+      "vietnamese_support": "Verified (Fine-tuned on viVoice dataset)",
+      "voice_cloning_mechanism": "Arbitrary zero-shot from 6s reference audio",
+      "cpu_inference_suitability": "Poor on 4-core mobile CPU (Autoregressive token generation RTF ~8x - 15x)",
+      "python_3_13_compat": "High risk (depends on legacy TTS package)",
+      "verdict": "NOT_FASTER_THAN_OMNIVOICE"
+    },
+    {
+      "name": "F5-TTS-Vietnamese",
+      "category": "Group A: Non-Autoregressive Flow Matching DiT",
+      "repository": "https://github.com/nguyenthienhy/F5-TTS-Vietnamese",
+      "architecture": "Diffusion Transformer (DiT ~385M) + ConvNeXt V2 + Vocos Vocoder",
+      "parameters": "~390M",
+      "checkpoint_size_gb": 1.5,
+      "license": "CC-BY-NC-SA-4.0 / MIT",
+      "vietnamese_support": "Verified (Fine-tuned on 1000h Vietnamese audio)",
+      "voice_cloning_mechanism": "Arbitrary zero-shot from 5-10s reference audio prompt",
+      "cpu_inference_suitability": "Heavy (Requires 16-32 ODE steps of 385M DiT, RTF ~6x - 12x on CPU)",
+      "python_3_13_compat": "Moderate (PyTorch based)",
+      "verdict": "HEAVY_ODE_STEPS_ON_CPU"
+    },
+    {
+      "name": "Kokoro-Vietnamese (Kokoro-82M)",
+      "category": "Group D: Compact Acoustic Model",
+      "repository": "https://huggingface.co/contextboxai/Kokoro-Vietnamese",
+      "architecture": "StyleTTS2-derived acoustic model + ISTFTNet / HifiGAN",
+      "parameters": "82M",
+      "checkpoint_size_gb": 0.35,
+      "license": "Apache 2.0",
+      "vietnamese_support": "Verified (vig2p phonemizer + community voicepacks)",
+      "voice_cloning_mechanism": "Pre-extracted static voicepacks only (NO arbitrary zero-shot reference cloning)",
+      "cpu_inference_suitability": "Extremely fast (RTF ~0.2x - 0.4x on CPU)",
+      "python_3_13_compat": "High",
+      "verdict": "FAST_BUT_NO_ZERO_SHOT_CLONING"
+    },
+    {
+      "name": "Piper TTS (vi_VN)",
+      "category": "Group D: Ultra-Fast Lightweight VITS",
+      "repository": "https://github.com/rhasspy/piper",
+      "architecture": "VITS (VAE + Monotonic Alignment Search + Normalizing Flow)",
+      "parameters": "~28M - 60M",
+      "checkpoint_size_gb": 0.08,
+      "license": "MIT",
+      "vietnamese_support": "Official Native (vi_VN-vivos, vi_VN-25hours)",
+      "voice_cloning_mechanism": "Multi-speaker pre-trained IDs only (NO arbitrary zero-shot reference cloning)",
+      "cpu_inference_suitability": "Super real-time on CPU (RTF ~0.05x - 0.15x)",
+      "python_3_13_compat": "High (C++ / ONNX / Python bindings)",
+      "verdict": "FASTEST_ON_CPU_BUT_NO_ZERO_SHOT_CLONING"
+    },
+    {
+      "name": "CosyVoice / CosyVoice-300M",
+      "category": "Group B: Multilingual Speech LLM + Flow",
+      "repository": "https://github.com/FunAudioLLM/CosyVoice",
+      "architecture": "Autoregressive Speech LLM + Flow Matching (~300M - 500M)",
+      "parameters": "~300M - 500M",
+      "checkpoint_size_gb": 1.2,
+      "license": "Apache 2.0",
+      "vietnamese_support": "Unofficial / Experimental community fine-tune only",
+      "voice_cloning_mechanism": "Zero-shot from 3-10s reference prompt",
+      "cpu_inference_suitability": "Heavy (Hybrid AR + Flow, RTF ~7x - 14x on CPU)",
+      "python_3_13_compat": "Low (Requires complex dependencies)",
+      "verdict": "HEAVY_ON_CPU_UNOFFICIAL_VIETNAMESE"
+    },
+    {
+      "name": "FlashSpeech / Distil-F5-TTS",
+      "category": "Group C: 1-2 Step Consistency Distilled TTS",
+      "repository": "https://github.com/jenny-fun/FlashSpeech",
+      "architecture": "Latent Consistency Model (LCM) + Non-autoregressive Generator",
+      "parameters": "~150M - 250M",
+      "checkpoint_size_gb": 0.8,
+      "license": "Research / Open Source",
+      "vietnamese_support": "Not Available (English / Chinese research checkpoints only)",
+      "voice_cloning_mechanism": "Zero-shot with prosody generator",
+      "cpu_inference_suitability": "High potential if Vietnamese model existed (RTF ~0.5x - 1.0x projected)",
+      "python_3_13_compat": "Experimental",
+      "verdict": "PROVEN_CONCEPT_BUT_NO_VIETNAMESE_CHECKPOINT"
+    }
+  ],
+  "distillation_feasibility": {
+    "direction_1_existing_distilled_checkpoints": {
+      "status": "NOT_FOUND_FOR_VIETNAMESE",
+      "finding": "No pre-trained 1-step/2-step distilled checkpoint supporting Vietnamese zero-shot voice cloning currently exists in open-source repositories."
+    },
+    "direction_2_custom_distillation": {
+      "status": "TECHNICALLY_SOUND_REQUIRES_TRAINING_RESOURCES",
+      "teacher_model": "OmniVoice V2.1 (4-step Flow Matching ODE, Qwen3 28 layers)",
+      "distillation_protocol": "Progressive Distillation (Salimans & Ho) or Flow Matching Consistency Distillation (4 steps -> 2 steps -> 1 step)",
+      "dataset_requirement": "100-300 hours paired Vietnamese audio-text (Vivos, viVoice, VLSP)",
+      "compute_requirement": "1x to 4x NVIDIA RTX 4090 / A100 (50-100 GPU hours)",
+      "local_training_on_ryzen_3450u": "IMPOSSIBLE (Requires gradient backprop through 28 Transformer layers)",
+      "projected_cpu_speedup_if_distilled": "2.0x (2-step student) to 3.8x (1-step student), bringing CPU RTF from 4.4x to ~1.2x - 2.2x"
+    }
+  },
+  "quality_validation_suite": {
+    "test_dimensions": [
+      "Short sentences (<40 chars) - basic tone clarity",
+      "Medium sentences (80-120 chars) - flow and punctuation pauses",
+      "Long paragraphs (90s target, ~600-800 chars) - identity stability",
+      "6 Tones verification (ngang, huyen, sac, hoi, nga, nang)",
+      "Terminal consonants (c, ch, p, t, m, n, ng, nh)",
+      "Loanwords and modern terms (AI, GPU, Transformer, CPU)",
+      "Interrogative and exclamatory prosody"
+    ],
+    "metrics": [
+      "Character Error Rate (CER) via Whisper-Large-v3-Turbo-Vietnamese",
+      "Speaker Similarity (SECS) via Resemblyzer / WavLM-SV",
+      "Real-Time Factor (RTF)",
+      "Peak RAM Usage (MB)"
+    ]
+  },
+  "final_classification": "CUSTOM_DISTILLATION_RESEARCH_REQUIRED"
+}

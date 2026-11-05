@@ -1,0 +1,11 @@
+{
+  "name": "Giọng nữ",
+  "folder_name": "Giong_nu",
+  "ref_audio_path": "C:\\Users\\Duzaier\\.gemini\\antigravity\\scratch\\OmniVoice\\voices\\Giong_nu\\reference.wav",
+  "ref_text": "Có một nghịch lý khá buồn về tình yêu. Có những người xuất hiện đúng lúc trái tim muốn yêu.",
+  "prompt_path": "C:\\Users\\Duzaier\\.gemini\\antigravity\\scratch\\OmniVoice\\voices\\Giong_nu\\prompt.pt",
+  "fingerprint": "5b3ea2e2de5806ae",
+  "created_at": "2026-10-02T11:00:50.876294",
+  "description": "Postcast",
+  "language": "Vietnamese"
+}

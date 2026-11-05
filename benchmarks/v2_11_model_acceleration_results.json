@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-10-01 14:05:39",
+  "architecture": {
+    "num_layers": 28,
+    "hidden_size": 1024,
+    "num_heads": 16,
+    "num_kv_heads": 8,
+    "head_dim": 64,
+    "intermediate_size": 3072,
+    "num_codebooks": 8,
+    "audio_vocab_size": 1025,
+    "llm_params": 595783680,
+    "embed_params": 8396800,
+    "heads_params": 8396800,
+    "tokenizer_params": 200343777,
+    "total_params": 1013264834,
+    "fp32_model_mb": 3865.2985916137695,
+    "step_flops_150_gflop": 110.7959808,
+    "step_flops_410_gflop": 315.06808832,
+    "total_4step_flops_150_gflop": 443.1839232,
+    "total_4step_flops_410_gflop": 1260.27235328
+  },
+  "dtypes": {
+    "model_param_dtypes": [
+      "torch.float32"
+    ],
+    "tokenizer_param_dtypes": [
+      "torch.float32"
+    ],
+    "is_pure_fp32": true
+  },
+  "golden_baseline": {
+    "wall_mean_s": 10.684789540001656,
+    "wall_std_s": 0.5294260209600988,
+    "diff_mean_s": 9.279586579999886,
+    "diff_std_s": 0.5138282698545314,
+    "voc_mean_s": 1.405022979999194,
+    "voc_std_s": 0.04567046233372005,
+    "audio_dur_mean_s": 4.816,
+    "rtf_mean": 2.2183297128864092,
+    "rms_mean": 0.23269228935241698,
+    "peak_mean": 0.5
+  },
+  "precision_audit": {
+    "has_cpu_amp": true,
+    "bf16_gemm_status": "Executable (Software Emulation on Zen+)",
+    "fp16_gemm_status": "Executable",
+    "has_dynamic_quant": true,
+    "supported_qengines": [
+      "none",
+      "onednn",
+      "x86",
+      "fbgemm"
+    ],
+    "active_qengine": "x86"
+  },
+  "quant_benchmarks": {
+    "bf16_autocast_1step_ms": "Failed: Got unsupported ScalarType BFloat16",
+    "int8_dynamic_quant_1step_ms": 4702.18313333559,
+    "int8_quant_time_s": 15.162642900002538,
+    "int8_qlinear_count": 0
+  },
+  "runtimes": {
+    "dynamo_backends": [
+      "cudagraphs",
+      "inductor",
+      "onnxrt",
+      "openxla",
+      "tvm"
+    ],
+    "external_runtimes": {
+      "onnxruntime": false,
+      "openvino": false,
+      "directml": false,
+      "torchscript": true,
+      "executorch": false
+    }
+  },
+  "repo_checkpoints": {
+    "checkpoints": [
+      ".\\voices\\Giong_nu\\prompt.pt"
+    ],
+    "has_distilled": false
+  },
+  "amdahl_bounds": {
+    "gemm_fraction_p": 0.515,
+    "transformer_fraction_p": 0.975,
+    "gemm_speedups": {
+      "2x_gemm": 1.3468013468013469,
+      "3x_gemm": 1.5228426395939088,
+      "4x_gemm": 1.6293279022403258,
+      "inf_gemm_limit": 2.061855670103093
+    },
+    "transformer_speedups": {
+      "2x_transformer": 1.9512195121951221,
+      "4x_transformer": 3.720930232558139,
+      "inf_transformer_limit": 39.999999999999964
+    }
+  }
+}

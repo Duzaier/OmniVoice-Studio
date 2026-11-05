@@ -1,0 +1,5 @@
+{
+  "summary": "Forensic benchmark evaluating the OmniVoice vocoder (HiggsAudioV2Tokenizer / DacDecoder) performance, oneDNN MKLDNN convolution profiling, thread scaling, and end-to-end Amdahl's Law analysis on AMD Ryzen 5 3450U CPU for OmniVoice V2.7. Shows vocoder represents only 13.6% of generation time and 78.8% is already oneDNN-accelerated.",
+  "updatedAt": "2026-10-01T04:40:43.464571800Z",
+  "userFacing": true
+}

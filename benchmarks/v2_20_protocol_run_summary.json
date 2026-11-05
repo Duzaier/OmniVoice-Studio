@@ -1,0 +1,155 @@
+{
+  "version": "2.20",
+  "git_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+  "timestamp": "2026-10-02 10:25:29",
+  "multi_group_simulation": {
+    "G0_Static_Control": {
+      "final_loss": 3.6707,
+      "step_latency_ms": 32.94,
+      "p_student": 0.0,
+      "weights": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "sanity_check": false
+    },
+    "G1_Curriculum_Uniform": {
+      "final_loss": 3.6709,
+      "step_latency_ms": 29.61,
+      "p_student": 0.5,
+      "weights": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "sanity_check": false
+    },
+    "G2_Curriculum_Sanity": {
+      "final_loss": 3.6719,
+      "step_latency_ms": 35.19,
+      "p_student": 0.5,
+      "weights": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "sanity_check": true
+    },
+    "G3a_Codebook_Uniform": {
+      "final_loss": 3.6703,
+      "step_latency_ms": 29.96,
+      "p_student": 0.5,
+      "weights": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "sanity_check": false
+    },
+    "G3b_Codebook_LinearDecay": {
+      "final_loss": 3.6708,
+      "step_latency_ms": 26.7,
+      "p_student": 0.5,
+      "weights": [
+        1.5,
+        1.3,
+        1.1,
+        1.0,
+        0.9,
+        0.9,
+        0.8,
+        0.8
+      ],
+      "sanity_check": false
+    },
+    "G3c_Codebook_ToneOriented": {
+      "final_loss": 3.6721,
+      "step_latency_ms": 28.18,
+      "p_student": 0.5,
+      "weights": [
+        2.0,
+        1.5,
+        1.0,
+        1.0,
+        0.8,
+        0.8,
+        0.6,
+        0.6
+      ],
+      "sanity_check": false
+    },
+    "G4_Integrated_Candidate": {
+      "final_loss": 3.6709,
+      "step_latency_ms": 38.66,
+      "p_student": 0.75,
+      "weights": [
+        1.5,
+        1.3,
+        1.1,
+        1.0,
+        0.9,
+        0.9,
+        0.8,
+        0.8
+      ],
+      "sanity_check": true
+    }
+  },
+  "reference_audio_audit": [
+    {
+      "accepted": true,
+      "reason": "Passed all quality gates",
+      "duration_sec": 4.977791666666667,
+      "metrics": {
+        "rms": 0.1038,
+        "clipping_ratio": 0.0,
+        "silence_ratio": 0.139,
+        "snr_db": 24.7
+      },
+      "file_path": "voices\\Giong_nu\\reference.wav",
+      "speaker": "Giong_nu"
+    },
+    {
+      "accepted": false,
+      "reason": "Duration too long (127.54s > 15.0s)",
+      "duration_sec": 127.54392290249433,
+      "metrics": {},
+      "file_path": "voices\\Giọngnữthơmộng\\reference.wav",
+      "speaker": "Giọngnữthơmộng"
+    },
+    {
+      "accepted": false,
+      "reason": "Duration too long (127.54s > 15.0s)",
+      "duration_sec": 127.54392290249433,
+      "metrics": {},
+      "file_path": "voices\\Nữthơmộng\\reference.wav",
+      "speaker": "Nữthơmộng"
+    }
+  ],
+  "vietnamese_tone_benchmark": {
+    "total_items": 100,
+    "perfect_accuracy": 100.0,
+    "confused_accuracy": 90.0
+  }
+}

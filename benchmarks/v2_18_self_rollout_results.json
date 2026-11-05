@@ -1,0 +1,131 @@
+{
+  "version": "V2.18",
+  "audit_subject": "Self-Rollout Validation & Scheduled Sampling Design",
+  "golden_baseline": {
+    "git_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+    "model": "OmniVoice V2.1 Batch-1 CFG=0",
+    "teacher_steps": 4,
+    "student_target_steps": 2,
+    "guidance_scale": 0.0,
+    "device": "AMD Ryzen 5 3450U CPU"
+  },
+  "phase_1_inference_mechanism": {
+    "q1_step1_input": "Full sequence with target audio region 100% masked with audio_mask_id (1024) across 8 codebooks.",
+    "q2_logits_and_confidence": "Predicts [B, 8, T, 1025] logits, masks out mask_id log-prob to -inf, takes argmax for tokens and max(softmax) for confidence.",
+    "q3_step1_unmask_selection": "Scores = confidence - (layer_ids * 5.0) + gumbel_noise; unmasks top-k1 (50% of total masked positions) via torch.topk.",
+    "q4_step2_token_state": "x_student_1 containing 50% revealed discrete tokens (layers prioritized 0->7) and 50% mask_id.",
+    "q5_step2_unmask_selection": "Scores computed on full sequence; already revealed tokens masked to -inf; remaining 50% positions unmasked (k2 = rem).",
+    "q6_schedule_and_ranking_role": "Schedule defines quantity (k) per step; confidence + layer penalty defines priority order across acoustic hierarchy.",
+    "q7_non_destructive_invariant": "Verified true. Revealed tokens strictly preserved; scores.masked_fill_ sets prior tokens to -inf preventing overwriting."
+  },
+  "phase_2_strategy_comparison": [
+    {
+      "strategy": "A. Static Teacher Trajectory",
+      "p_student": 0.0,
+      "input_step2": "x_teacher_2 (Teacher 50% rollout)",
+      "inference_compatibility": "Moderate",
+      "exposure_bias_mitigation": "None",
+      "compute_overhead": "1.0x (pre-computable)",
+      "pros": "Maximum gradient stability, lowest compute",
+      "cons": "Covariate shift during autonomous inference"
+    },
+    {
+      "strategy": "B. Scheduled Sampling (p=0.25)",
+      "p_student": 0.25,
+      "input_step2": "Bernoulli(0.25) -> 25% Student / 75% Teacher",
+      "inference_compatibility": "Good",
+      "exposure_bias_mitigation": "Partial",
+      "compute_overhead": "1.25x",
+      "pros": "Gentle curriculum, high stability",
+      "cons": "Slower adaptation to severe student errors"
+    },
+    {
+      "strategy": "B. Scheduled Sampling (p=0.50)",
+      "p_student": 0.50,
+      "input_step2": "Bernoulli(0.50) -> 50% Student / 50% Teacher",
+      "inference_compatibility": "High",
+      "exposure_bias_mitigation": "Balanced",
+      "compute_overhead": "1.5x",
+      "pros": "Balanced teacher guidance and student self-conditioning",
+      "cons": "Moderate gradient variance"
+    },
+    {
+      "strategy": "B. Scheduled Sampling (p=0.75)",
+      "p_student": 0.75,
+      "input_step2": "Bernoulli(0.75) -> 75% Student / 25% Teacher",
+      "inference_compatibility": "Very High",
+      "exposure_bias_mitigation": "Aggressive",
+      "compute_overhead": "1.75x",
+      "pros": "Fastest adaptation to student inference distribution",
+      "cons": "Higher initial gradient noise if early student is weak"
+    },
+    {
+      "strategy": "C. Pure Student Self-Rollout",
+      "p_student": 1.0,
+      "input_step2": "x_student_1 (100% Student rollout)",
+      "inference_compatibility": "Full (100% on-policy)",
+      "exposure_bias_mitigation": "Complete",
+      "compute_overhead": "2.0x live rollout",
+      "pros": "Zero distribution gap between training and inference",
+      "cons": "Potential slow initial warm-up without teacher guidance"
+    },
+    {
+      "strategy": "D. Mixed Curriculum (Annealed)",
+      "p_student": "Annealed: 0.0 -> 0.75 over 800 steps",
+      "input_step2": "Dynamic transition from Teacher to Student",
+      "inference_compatibility": "Optimal",
+      "exposure_bias_mitigation": "Optimal",
+      "compute_overhead": "1.5x average",
+      "pros": "Combines early training stability with late on-policy adaptation",
+      "cons": "Requires tuning transition schedule"
+    }
+  ],
+  "phase_3_controlled_tests": {
+    "test_suite": "tests/test_v2_18_self_rollout_validation.py",
+    "total_tests": 6,
+    "passed_tests": 6,
+    "results": {
+      "test_1_student_step1_unmasking": "PASSED (80/160 tokens unmasked, Layer 0 prioritized)",
+      "test_2_self_rollout_step2_pipeline": "PASSED (Non-destructive invariant verified)",
+      "test_3_target_alignment_and_active_loss": "PASSED (Active grad: 1.38, Inactive grad: 0.00)",
+      "test_4_future_token_non_leakage": "PASSED (Zero target leakage in x_0)",
+      "test_5_multi_strategy_synthesis": "PASSED (Strategies A, B, C, D verified)",
+      "test_6_micro_benchmark": "PASSED (Static: 1756.31ms, Self-Rollout: 1019.97ms)"
+    }
+  },
+  "phase_4_distribution_shift_metrics": [
+    {
+      "metric": "Unmask Position IoU (Jaccard Index)",
+      "formula": "|U_teacher ∩ U_student| / |U_teacher ∪ U_student|",
+      "scope": "Spatial unmask agreement per step and per codebook"
+    },
+    {
+      "metric": "Token Agreement Rate",
+      "formula": "sum(x_teacher == x_student) / |U_teacher ∩ U_student|",
+      "scope": "Prediction accuracy on shared unmasked positions"
+    },
+    {
+      "metric": "Confidence KL Divergence",
+      "formula": "D_KL(P_student(C) || P_teacher(C))",
+      "scope": "Calibration and ranking stability"
+    },
+    {
+      "metric": "Masked Logits MSE",
+      "formula": "MSE(z_student[mask], z_teacher[mask])",
+      "scope": "Residual latent representation error"
+    }
+  ],
+  "phase_5_gpu_poc_specification": {
+    "hardware_target": "1x NVIDIA RTX 4090 (24 GB) or A100 (40 GB)",
+    "dataset_volume": "500 Vietnamese utterances (duration 3-8s) + 50 reference audio prompts",
+    "batch_size": 4,
+    "gradient_accumulation_steps": 2,
+    "optimizer": "AdamW (lr=1e-4, weight_decay=1e-2, cosine schedule)",
+    "training_steps": 1000,
+    "estimated_time_per_run": "15-20 minutes per strategy",
+    "validation_set": "50 unseen Vietnamese sentences across 5 unseen reference voices",
+    "audio_evaluation_metrics": ["SECS (Speaker Similarity)", "CER (Character Error Rate via Whisper)", "PESQ / STOI"],
+    "safety_gate": "Early stop if loss > 10.0 or step-1 accuracy < 50%"
+  },
+  "final_verdict": "READY FOR LIMITED GPU COMPARISON"
+}

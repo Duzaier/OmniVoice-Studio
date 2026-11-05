@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-10-02 09:35:00",
+  "baseline_verification": {
+    "git_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+    "git_branch": "master",
+    "status": "VERIFIED_CLEAN",
+    "engine": "OmniVoice V2.1 Batch-1 CFG=0",
+    "config": {
+      "num_step": 4,
+      "guidance_scale": 0.0,
+      "precision": "FP32",
+      "cpu_threads": 6
+    }
+  },
+  "teacher_architecture_findings": {
+    "model_paradigm": "Discrete Masked Audio Token Generative Model (MaskGIT / SoundStorm style)",
+    "backbone": "Qwen3 Transformer (28 layers, hidden_dim=2048, intermediate_dim=5632, 16 Q heads, 8 KV heads)",
+    "audio_representation": "8 Discrete RVQ Codebooks at 25Hz (Audio Vocabulary Size: 2048 per codebook)",
+    "embedding_mechanism": "Shifted codebook IDs summed into 2048-dim audio embeddings, masked-multiplexed with text embeddings",
+    "generation_loop": "Iterative Top-K Confidence-Based Unmasking across num_step=4 timesteps",
+    "vocoder": "Higgs Vocoder (1D Conv, Transposed Conv, Snake1d activations, 24kHz waveform output)",
+    "training_loss": "Layer-weighted Cross-Entropy over discrete audio codebook vocabulary"
+  },
+  "distillation_methodology_analysis": {
+    "method_a_progressive_unmasking_distillation": {
+      "applicability": "High",
+      "mechanism": "Train student to predict the combined unmasked tokens of 2 teacher steps in a single step (4 -> 2 -> 1 steps)",
+      "loss": "Cross-Entropy on Teacher-Unmasked Token Trajectories + Masked Cross-Entropy",
+      "risk": "Low (Directly mirrors teacher generation dynamics)"
+    },
+    "method_b_confidence_distillation": {
+      "applicability": "High",
+      "mechanism": "Distill both hard discrete token predictions and soft confidence logits from teacher audio heads to student",
+      "loss": "KL Divergence on Audio Head Logits + Top-K Ranking Margin Loss",
+      "risk": "Low to Moderate"
+    },
+    "method_c_one_step_parallel_predictor": {
+      "applicability": "Moderate",
+      "mechanism": "Direct 1-step parallel generation of all 8 codebooks from prompt embeddings",
+      "loss": "Multi-Codebook Cross-Entropy + Codebook Dependency Loss",
+      "risk": "Moderate (May experience acoustic degradation on fast tone transitions)"
+    }
+  },
+  "student_configurations": [
+    {
+      "name": "Student A: 2-Step Flow-Distilled Model",
+      "architecture": "Preserved Qwen3 28 Layers (~600M)",
+      "target_steps": 2,
+      "unmasking_schedule": "50% at step 1, 50% at step 2",
+      "projected_cpu_speedup": "1.95x (Wall ~11.0s / 4.8s audio, RTF ~2.28x)",
+      "risk": "Very Low (Maintains high audio fidelity and tone distinctions)"
+    },
+    {
+      "name": "Student B: 1-Step Parallel Non-Autoregressive Model",
+      "architecture": "Preserved Qwen3 28 Layers (~600M)",
+      "target_steps": 1,
+      "unmasking_schedule": "100% at step 1",
+      "projected_cpu_speedup": "3.65x (Wall ~5.8s / 4.8s audio, RTF ~1.22x)",
+      "risk": "Moderate (Requires strict confidence distillation to prevent phoneme blur)"
+    },
+    {
+      "name": "Student C: Compact 14-Layer 2-Step Hybrid Model",
+      "architecture": "Pruned Qwen3 14 Layers (~320M)",
+      "target_steps": 2,
+      "unmasking_schedule": "50% at step 1, 50% at step 2",
+      "projected_cpu_speedup": "3.90x (Wall ~5.5s / 4.8s audio, RTF ~1.15x)",
+      "risk": "High (Requires both layer pruning initialization and distillation)"
+    }
+  ],
+  "dataset_evaluation": {
+    "vivos": {
+      "hours": 15.0,
+      "speakers": 65,
+      "license": "CC-BY-SA 4.0 / Academic Non-Commercial",
+      "suitability": "Ideal for Phase 1 Minimal PoC"
+    },
+    "vivoice": {
+      "hours": 100.0,
+      "speakers": 500,
+      "license": "VinAI Research License",
+      "suitability": "Ideal for Phase 2 Production 2-Step Student"
+    },
+    "vlsp_corpus": {
+      "hours": 50.0,
+      "speakers": "Multi-speaker",
+      "license": "VLSP Evaluation / Academic",
+      "suitability": "Validation and Benchmark"
+    },
+    "poc_minimal_dataset": "5 hours clean paired subset from VIVOS"
+  },
+  "resource_estimation": {
+    "local_machine_training": "IMPOSSIBLE (Ryzen 5 3450U CPU lacks backprop throughput and VRAM)",
+    "cloud_gpu_poc": "1x NVIDIA RTX 4090 (24GB VRAM), ~10-15 GPU hours ($6 - $12 on RunPod/Lambda)",
+    "cloud_gpu_full_distillation": "1x NVIDIA A100 (80GB) or 2x RTX 4090, ~40-60 GPU hours ($30 - $60)",
+    "storage_required_gb": 35.0
+  },
+  "phased_roadmap": [
+    "Phase 0: Architecture & Tokenizer Validation (Local Read-Only)",
+    "Phase 1: Minimal PoC (5h VIVOS subset on 1x RTX 4090 for 10 hours)",
+    "Phase 2: 2-Step Student Full Distillation (100h viVoice)",
+    "Phase 3: 1-Step Student Distillation (Exploratory)",
+    "Phase 4: Vietnamese 6-Tone Quality & Long-Form Validation",
+    "Phase 5: CPU Performance Benchmarking on Ryzen 5 3450U"
+  ],
+  "final_verdict": "READY FOR MINIMAL POC"
+}

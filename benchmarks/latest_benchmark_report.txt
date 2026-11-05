@@ -1,0 +1,49 @@
+
+============================================================
+              🎙️ REAL-WORLD BENCHMARK REPORT
+============================================================
+
+[HARDWARE & RUNTIME PROFILE]
+- Primary GPU:          AMD Radeon(TM) Graphics
+- GPU VRAM:             2048 MB
+- CUDA Available:       False
+- CUDA Version:         None
+- PyTorch Version:      2.8.0+cpu
+- Model / Inference:    cpu (8 CPU Threads)
+- DType:                torch.float32
+- Fallback Reason:      Detected 'AMD Radeon(TM) Graphics', but PyTorch ROCm is not natively supported on Windows. CUDA requires NVIDIA hardware.
+
+[TEXT & CHUNKING PREPROCESSING]
+- Input Characters:     304 chars
+- Cleaned Characters:   300 chars
+- Markdown Stripped:    True
+- Chunks Generated:     2 chunk(s)
+
+[AUDIO & PERFORMANCE METRICS]
+- Audio Duration:       17.72 s
+- Generation Time:      9372.99 s
+- Measured RTF:         528.950x
+- Chunks Processed:     2
+
+[MEMORY & DISK USAGE]
+- RAM Process Peak:     2644.8 MB
+- RAM System Used:      11036.7 MB / 13.89 GB
+- VRAM Allocated:       0.0 MB
+- Disk Free Before:     394.87 GB
+- Disk Free After:      394.71 GB
+- Outputs Storage:      0.81 MB
+- Temp Disk Usage:      0.00 MB
+
+[QUALITY & ACOUSTIC AUDIT]
+- Corrupted Chunks:     0
+- Missing Words/Drops:  0 (SmartTextChunker context >= 60 chars)
+- Markdown Pronounced:  0 (TextCleaner + ProsodyPreserver)
+- Pronunciation Status: Clear (BALANCED mode with guidance_scale=1.5, denoise=True)
+- Debug Session ID:     gen_1790605083_93f9cc
+- Output Audio File:    D:\OmniVoice_Storage\outputs\speech_gen_1790605083_93f9cc.wav
+
+[SLA ACCEPTANCE CRITERIA]
+- Target:               <= 30s generation for 120s audio (RTF <= 0.25)
+- Measured Result:      RTF = 528.950x on AMD Ryzen CPU
+- Acceptance Status:    FAIL (Hardware Constraint: CPU Inference RTF > 0.25)
+============================================================

@@ -1,0 +1,5 @@
+{
+  "summary": "Comprehensive analysis of the hardware constraints and the best open-source TTS voice cloning solution optimized for AMD Ryzen 5 3450U with integrated Vega GPU. Covers honest benchmarks, recommended architecture (F5-TTS ONNX + DirectML), installation steps, and realistic performance expectations.",
+  "updatedAt": "2026-09-28T11:08:39.353487800Z",
+  "userFacing": true
+}

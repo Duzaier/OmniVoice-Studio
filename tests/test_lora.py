@@ -26,15 +26,20 @@ is not set or does not exist, since they load the actual pretrained model.
 import json
 import os
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    pytest = None
 import torch
 
 MODEL_PATH = os.environ.get("OMNIVOICE_TEST_MODEL_PATH")
 
-pytestmark = pytest.mark.skipif(
-    not MODEL_PATH or not os.path.isdir(MODEL_PATH),
-    reason="Set OMNIVOICE_TEST_MODEL_PATH to a local OmniVoice model directory to run these tests.",
-)
+if pytest is not None:
+    pytestmark = pytest.mark.skipif(
+        not MODEL_PATH or not os.path.isdir(MODEL_PATH),
+        reason="Set OMNIVOICE_TEST_MODEL_PATH to a local OmniVoice model directory to run these tests.",
+    )
+
 
 
 def _lora_config(output_dir, **overrides):

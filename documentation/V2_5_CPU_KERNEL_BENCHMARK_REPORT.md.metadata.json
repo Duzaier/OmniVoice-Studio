@@ -1,0 +1,5 @@
+{
+  "summary": "Comprehensive forensic benchmark report of CPU kernel-level operations, PyTorch BLAS/MKL backends, GEMM throughput across threads, PyTorch operator profiling, and torch.compile diagnostic for OmniVoice V2.5.",
+  "updatedAt": "2026-10-01T03:51:54.926622500Z",
+  "userFacing": true
+}

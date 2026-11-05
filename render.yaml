@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: omnivoice-studio
+    runtime: docker
+    plan: standard
+    envVars:
+      - key: PORT
+        value: 7860
+      - key: OMP_NUM_THREADS
+        value: 6
+      - key: MKL_NUM_THREADS
+        value: 6

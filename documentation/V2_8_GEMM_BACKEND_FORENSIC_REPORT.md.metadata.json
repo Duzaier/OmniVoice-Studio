@@ -1,0 +1,5 @@
+{
+  "summary": "Comprehensive forensic benchmark report investigating PyTorch GEMM backend (Intel MKL 2025.2, AVX2, OpenMP) performance, arithmetic intensity, memory stride layout, and CPU thread scaling across real OmniVoice Qwen3 shapes. Confirms current baseline operates at ~87% of theoretical hardware FP32 peak compute efficiency.",
+  "updatedAt": "2026-10-01T04:50:42.801927800Z",
+  "userFacing": true
+}

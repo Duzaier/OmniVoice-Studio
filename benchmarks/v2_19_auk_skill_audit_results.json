@@ -1,0 +1,178 @@
+{
+  "version": "2.19",
+  "baseline_commit": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+  "omnivoice_findings": [
+    {
+      "finding": "Discrete masked token generative model predicting categorical distributions over 2048 codebook tokens across 8 RVQ layers at 25Hz.",
+      "evidence": "[VERIFIED]",
+      "citation": "omnivoice/models/omnivoice.py:1120-1175"
+    },
+    {
+      "finding": "Iterative unmasking uses confidence ranking penalized by layer ID (layer_penalty_factor = 5.0) prioritizing Layer 0.",
+      "evidence": "[VERIFIED]",
+      "citation": "omnivoice/models/omnivoice.py:1414"
+    },
+    {
+      "finding": "Non-destructive token freezing invariant sets previously unmasked tokens to -inf scores, preventing modification.",
+      "evidence": "[VERIFIED]",
+      "citation": "omnivoice/models/omnivoice.py:1420"
+    },
+    {
+      "finding": "Inference Golden Baseline operates at num_step=4, guidance_scale=0.0, batch_size=1 on CPU with 6 threads.",
+      "evidence": "[VERIFIED]",
+      "citation": "e5a3059"
+    }
+  ],
+  "auk_findings": [
+    {
+      "finding": "AuK is a 1.5B parameter foundational model for unified speech generation and editing based on Continuous Rectified-Flow DiT.",
+      "evidence": "[DOCUMENTED]",
+      "citation": "arXiv:2609.08936"
+    },
+    {
+      "finding": "Uses Qwen2.5-Omni-3B MLLM for instruction/text processing and Continuous Latent Audio VAE (128-dim, 50Hz).",
+      "evidence": "[DOCUMENTED]",
+      "citation": "arXiv:2609.08936"
+    },
+    {
+      "finding": "AuK-Flash achieves 4-step generation via consistency initialization and task-routed Decoupled DMD without CFG.",
+      "evidence": "[DOCUMENTED]",
+      "citation": "arXiv:2609.08936"
+    },
+    {
+      "finding": "AuK is optimized for Chinese (Mandarin, 12 dialects) and English; possesses no native acoustic phonemizer or tonal model for Vietnamese.",
+      "evidence": "[DOCUMENTED]",
+      "citation": "arXiv:2609.08936"
+    }
+  ],
+  "speech_skills": [
+    {"dimension": "A. Audio Ingestion", "skill": "Multi-rate resampling, mono normalization, and WAV header integrity validation.", "transfer_level": "LEVEL 1"},
+    {"dimension": "B. Reference Audio Processing", "skill": "Multi-criteria filtering: SNR >= 14dB, Clipping <= 0.2%, Duration 2.5-15s, Silence <= 30%.", "transfer_level": "LEVEL 1"},
+    {"dimension": "C. Speech Representation", "skill": "Hierarchical separation of acoustic backbone vs fine harmonic residuals.", "transfer_level": "LEVEL 2"},
+    {"dimension": "D. Voice Conditioning", "skill": "In-context reference audio prefixing in transformer attention space.", "transfer_level": "VERIFIED IN OMNIVOICE"},
+    {"dimension": "E. Speech Quality Control", "skill": "ASR and SNR based data cleaning of speech training pairs.", "transfer_level": "LEVEL 1"},
+    {"dimension": "F. Speaker Similarity", "skill": "Automated SECS measurement via WavLM-TDNN cosine similarity.", "transfer_level": "LEVEL 1"},
+    {"dimension": "G. Acoustic Consistency", "skill": "Trajectory alignment and non-destructive intermediate state preservation.", "transfer_level": "LEVEL 2"},
+    {"dimension": "H. Data Filtering", "skill": "CER/WER validation filtering on text-audio training pairs.", "transfer_level": "LEVEL 1"},
+    {"dimension": "I. Training Curriculum", "skill": "Curriculum annealing from teacher-guided warmup to self-rollout exposure.", "transfer_level": "LEVEL 2"},
+    {"dimension": "J. Distillation Principles", "skill": "Decoupled feature-specific loss supervision across representation tiers.", "transfer_level": "LEVEL 2"},
+    {"dimension": "K. Evaluation Methodology", "skill": "Multi-dimensional objective evaluation harness (SECS + CER + Quality).", "transfer_level": "LEVEL 1"},
+    {"dimension": "L. Inference Robustness", "skill": "CFG=0 operation to prevent variance amplification and acoustic artifacts.", "transfer_level": "VERIFIED IN OMNIVOICE"},
+    {"dimension": "M. Failure Detection", "skill": "Logit/confidence drop monitoring for early detection of generation failure.", "transfer_level": "LEVEL 2"},
+    {"dimension": "N. Audio Preprocessing", "skill": "High-pass filtering (>50Hz) and LUFS loudness normalization (-24 LUFS).", "transfer_level": "LEVEL 1"},
+    {"dimension": "O. Audio Postprocessing", "skill": "Cross-fading across text boundaries and 10ms edge de-clicking fades.", "transfer_level": "VERIFIED IN OMNIVOICE"}
+  ],
+  "transferability": [
+    {
+      "technique": "Reference Audio Sanity Check Adapter",
+      "source": "AuK Ingestion Module",
+      "architecture_dependency": "Independent",
+      "language_dependency": "Independent",
+      "compatibility": "DIRECT",
+      "level": "LEVEL 1",
+      "decision": "APPROVED FOR V2.20 PREPROCESSING ADAPTER"
+    },
+    {
+      "technique": "Automated SECS & CER Speech Evaluation Harness",
+      "source": "AuK Evaluation Suite",
+      "architecture_dependency": "Independent",
+      "language_dependency": "Requires Vietnamese ASR",
+      "compatibility": "DIRECT",
+      "level": "LEVEL 1",
+      "decision": "APPROVED FOR V2.20 EVALUATION HARNESS"
+    },
+    {
+      "technique": "Decoupled Codebook Knowledge Distillation Loss",
+      "source": "AuK-Flash DMD Principle",
+      "architecture_dependency": "Compatible with 8-layer RVQ",
+      "language_dependency": "Independent",
+      "compatibility": "ADAPTABLE",
+      "level": "LEVEL 2",
+      "decision": "APPROVED FOR V2.20 ABLATION MATRIX"
+    },
+    {
+      "technique": "Mixed Curriculum Scheduled Sampling (Strategy D)",
+      "source": "V2.18 + AuK Curriculum",
+      "architecture_dependency": "Compatible with Discrete Unmasking",
+      "language_dependency": "Independent",
+      "compatibility": "ADAPTABLE",
+      "level": "LEVEL 2",
+      "decision": "APPROVED AS CORE V2.20 TRAINING METHOD"
+    }
+  ],
+  "incompatible_components": [
+    {
+      "component": "Continuous Latent Audio VAE",
+      "source": "AuK VAE Core",
+      "reason": "Incompatible with OmniVoice's discrete RVQ tokens and HiggsAudio vocoder.",
+      "level": "LEVEL 3"
+    },
+    {
+      "component": "Rectified Flow ODE Velocity Solver",
+      "source": "AuK DiT Core",
+      "reason": "Mathematical paradigm mismatch with categorical masked unmasking.",
+      "level": "LEVEL 3"
+    },
+    {
+      "component": "Qwen2.5-Omni-3B MLLM Backbone",
+      "source": "AuK Conditioning Backbone",
+      "reason": "Excessive 3B parameter scale exceeding CPU memory limits and baseline scope.",
+      "level": "LEVEL 3"
+    },
+    {
+      "component": "AuK Chinese/English Text Tokenizer",
+      "source": "AuK Text Module",
+      "reason": "Severe risk of stripping Vietnamese tone marks and corrupting diacritics.",
+      "level": "LEVEL 3"
+    }
+  ],
+  "vietnamese_risks": [
+    {
+      "risk": "Corruption of Vietnamese 6 Tones (Ngang, Huyen, Sac, Hoi, Nga, Nang)",
+      "cause": "Under-weighting Layer 0 acoustic pitch contour or using non-Vietnamese tokenizers.",
+      "mitigation": "Protect OmniVoice text pipeline; enforce Layer 0 loss weight >= 1.5x; deploy Tone Accuracy minimal pair gate.",
+      "severity": "HIGH RISK"
+    },
+    {
+      "risk": "Loss of Final Consonants (-ng, -nh, -ch, -c, -t, -p)",
+      "cause": "Excessive downsampling or rapid unmasking of mid-frequency formant layers (Layers 1-3).",
+      "mitigation": "Monitor Whisper CER with final consonant decomposition.",
+      "severity": "MEDIUM RISK"
+    }
+  ],
+  "v218_reconciliation": [
+    {"claim": "Confidence ranking with layer penalty = 5.0", "status": "VERIFIED", "source": "omnivoice.py:1414"},
+    {"claim": "Non-destructive token freezing invariant", "status": "VERIFIED", "source": "omnivoice.py:1420"},
+    {"claim": "Dynamic active-mask loss gradient isolation", "status": "VERIFIED", "source": "test_3_target_alignment"},
+    {"claim": "Test 6 Micro-benchmark 0.58x overhead", "status": "CORRECTED", "note": "Measured on tiny CPU mock; real GPU training rollout overhead is ~1.5x - 2.0x vs cached static teacher"},
+    {"claim": "Decoupled weights w0=1.5..w7=0.8 optimality", "status": "HYPOTHESIS", "note": "Plausible architectural hypothesis; requires V2.20 empirical validation"},
+    {"claim": "Student 2-step audio quality proof", "status": "UNRESOLVED", "note": "V2.18 verified training feasibility only; speech quality requires GPU POC audio generation"}
+  ],
+  "v220_experiments": [
+    {"group": "G0", "name": "Baseline Static Teacher (Strategy A)", "p_student": 0.0, "loss": "Uniform KD (w=1.0)"},
+    {"group": "G1", "name": "Mixed Curriculum (Strategy D)", "p_student": "Annealed 0.0 -> 0.75", "loss": "Uniform KD (w=1.0)"},
+    {"group": "G2", "name": "Strategy D + Reference Audio Sanity Adapter", "p_student": "Annealed 0.0 -> 0.75", "loss": "Uniform KD (w=1.0)"},
+    {"group": "G3", "name": "Strategy D + Decoupled Codebook KD (Proposed)", "p_student": "Annealed 0.0 -> 0.75", "loss": "Decoupled Loss (w0=1.5 -> w7=0.8)"},
+    {"group": "G4", "name": "Strategy D + Sanity Adapter + Decoupled KD", "p_student": "Annealed 0.0 -> 0.75", "loss": "Decoupled Loss (w0=1.5 -> w7=0.8)"},
+    {"group": "G5", "name": "Strategy D + Full Automated Evaluation Harness", "p_student": "Annealed 0.0 -> 0.75", "loss": "Decoupled Loss + SECS/CER/Tone Evaluation"}
+  ],
+  "metrics": [
+    {"name": "Mask IoU", "type": "Distribution", "scope": "Measures unmasking spatial overlap between teacher and student"},
+    {"name": "Token Agreement Rate", "type": "Distribution", "scope": "Discrete prediction accuracy on shared unmasked positions"},
+    {"name": "Confidence KL", "type": "Calibration", "scope": "Monitors confidence score distribution divergence"},
+    {"name": "SECS", "type": "Speech Quality", "scope": "Speaker embedding cosine similarity via WavLM-TDNN"},
+    {"name": "CER / WER", "type": "Linguistic", "scope": "Character and word error rate via Whisper-large-v3 Vietnamese"},
+    {"name": "Tone Accuracy", "type": "Linguistic", "scope": "Accuracy on 100 Vietnamese tonal minimal pairs (ma, má, mà, mả, mã, mạ)"}
+  ],
+  "quality_gates": [
+    {"gate": "Vietnamese Tone Accuracy", "threshold": ">= 90.0%", "type": "PROPOSED THRESHOLD", "action": "Reject checkpoint if tonal distortion detected"},
+    {"gate": "Whisper CER (Vietnamese)", "threshold": "<= 12.0%", "type": "PROPOSED THRESHOLD", "action": "Reject checkpoint if intelligibility degrades"},
+    {"gate": "Speaker Similarity (SECS)", "threshold": ">= 0.75", "type": "PROPOSED THRESHOLD", "action": "Reject checkpoint if clone identity is lost"},
+    {"gate": "Loss Divergence Gate", "threshold": "Loss <= 10.0", "type": "EXISTING PROJECT THRESHOLD", "action": "Immediate early stop"}
+  ],
+  "baseline_integrity": {
+    "commit_verified": true,
+    "commit_hash": "e5a3059e9f423fb34ffd34b534cccdc28037c1b1",
+    "working_tree_clean": true
+  }
+}

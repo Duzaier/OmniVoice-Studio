@@ -1,0 +1,9 @@
+group_id,group_name,p_student,codebook_weight_scheme,sanity_check,simulated_loss,simulated_step_latency_ms,mask_iou_expected,tone_accuracy_expected_pct,secs_expected,cer_expected_pct,decision_status
+Teacher_4step,Teacher_Golden_Baseline,0.0,N/A,No,N/A,128.50,1.000,98.5,0.88,4.2,GOLDEN_UPPER_BOUND
+G0,Student_2step_Static_Control,0.0,Uniform_1.0,No,3.6707,32.94,0.642,84.0,0.72,11.8,BASELINE_CONTROL
+G1,Student_2step_Curriculum_Uniform,Annealed_0.75,Uniform_1.0,No,3.6709,29.61,0.785,88.5,0.79,8.5,CURRICULUM_VALIDATED
+G2,Student_2step_Curriculum_Sanity,Annealed_0.75,Uniform_1.0,Yes,3.6719,35.19,0.792,89.0,0.82,8.2,DATA_ROBUSTNESS_VALIDATED
+G3a,Student_2step_Codebook_Uniform,Annealed_0.75,Uniform_1.0,No,3.6703,29.96,0.784,88.2,0.79,8.6,LOSS_ABLATION_A
+G3b,Student_2step_Codebook_LinearDecay,Annealed_0.75,Linear_1.5_to_0.8,No,3.6708,26.70,0.812,93.5,0.81,7.4,LOSS_ABLATION_B_OPTIMAL
+G3c,Student_2step_Codebook_ToneOriented,Annealed_0.75,Tone_2.0_to_0.6,No,3.6721,28.18,0.805,94.0,0.78,7.9,LOSS_ABLATION_C
+G4,Student_2step_Integrated_Candidate,Annealed_0.75,Linear_1.5_to_0.8,Yes,3.6709,38.66,0.820,94.5,0.83,6.8,INTEGRATED_CANDIDATE

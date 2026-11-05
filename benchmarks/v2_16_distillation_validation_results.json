@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-10-02 09:42:50",
+  "teacher_4step_schedule": [
+    118,
+    118,
+    118,
+    118
+  ],
+  "total_target_tokens": 472,
+  "supervision_tokens_step1": 236,
+  "loss_ce": 4.753839015960693,
+  "loss_kd": 1.8696614503860474,
+  "total_loss": 3.3117501735687256,
+  "gradient_finite_verified": true,
+  "max_grad_norm": 22.110427856445312,
+  "tensor_shapes": {
+    "input_ids": [
+      1,
+      8,
+      79
+    ],
+    "logits": [
+      1,
+      8,
+      59,
+      1025
+    ],
+    "s1_mask": [
+      1,
+      8,
+      59
+    ]
+  },
+  "dryrun_status": "SUCCESS"
+}

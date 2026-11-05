@@ -1,0 +1,5 @@
+{
+  "summary": "OmniVoice V2.2 Single-Variable Diffusion Step Experiment Report comparing num_step=4 (baseline), num_step=3, and num_step=2, providing latency breakdowns, acoustic and phoneme quality evaluation, and final decision on whether to adopt V2.2.",
+  "updatedAt": "2026-10-01T02:49:30.198082300Z",
+  "userFacing": true
+}

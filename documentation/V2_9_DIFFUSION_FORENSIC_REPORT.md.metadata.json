@@ -1,0 +1,5 @@
+{
+  "summary": "Comprehensive forensic report on OmniVoice V2.9 diffusion step computation, tensor invariance, bidirectional self-attention representation drift, num_step scaling (1, 2, 3, 4, 6, 8), and compute reuse feasibility. Concludes that num_step=4 remains the minimal step count for lossless Vietnamese voice cloning.",
+  "updatedAt": "2026-10-01T05:11:30.326225900Z",
+  "userFacing": true
+}

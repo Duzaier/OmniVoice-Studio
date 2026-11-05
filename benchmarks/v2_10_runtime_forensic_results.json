@@ -1,0 +1,314 @@
+{
+  "timestamp": "2026-10-01 12:45:20",
+  "audit": {
+    "grad_default": true,
+    "inf_default": false,
+    "grad_in_no_grad": false,
+    "inf_in_no_grad": false,
+    "grad_in_inf": false,
+    "inf_in_inf": true,
+    "submodule_training": {
+      "omnivoice_training": false,
+      "llm_training": false,
+      "audio_embeddings_training": false,
+      "audio_heads_training": false,
+      "tokenizer_training": false
+    },
+    "dropout_count": 38,
+    "norm_count": 148
+  },
+  "golden_baseline": {
+    "wall_mean_s": 10.473756499998853,
+    "wall_std_s": 0.4779716294164158,
+    "wall_min_s": 10.013670300002559,
+    "wall_max_s": 11.337228599993978,
+    "diff_mean_s": 9.071804679997149,
+    "diff_std_s": 0.43856180296702524,
+    "voc_mean_s": 1.4017590799950994,
+    "voc_std_s": 0.04395936608270903,
+    "audio_dur_mean_s": 4.828,
+    "rtf_mean": 2.169164118422617,
+    "rms_mean": 0.2616123527288437,
+    "peak_mean": 0.5
+  },
+  "context_benchmark": {
+    "torch.inference_mode()": {
+      "wall_mean_s": 10.933968340000138,
+      "wall_std_s": 0.951355021558528,
+      "diff_mean_s": 9.456787179998354,
+      "diff_std_s": 0.8505766055904799
+    },
+    "torch.no_grad()": {
+      "wall_mean_s": 13.229360319999978,
+      "wall_std_s": 0.18181919123289395,
+      "diff_mean_s": 11.538050180001301,
+      "diff_std_s": 0.18878240042051977
+    }
+  },
+  "threads_benchmark": {
+    "4": {
+      "wall_mean_s": 14.87205959999701,
+      "wall_std_s": 0.3168130510009423,
+      "diff_mean_s": 13.099896700002137,
+      "diff_std_s": 0.29700480915052985,
+      "voc_mean_s": 1.771956000002683,
+      "voc_std_s": 0.06046507806804791
+    },
+    "6": {
+      "wall_mean_s": 13.345537559996592,
+      "wall_std_s": 0.1568315264932547,
+      "diff_mean_s": 11.600443880000967,
+      "diff_std_s": 0.09862609025787399,
+      "voc_mean_s": 1.7449040799983777,
+      "voc_std_s": 0.06973730662803299
+    },
+    "8": {
+      "wall_mean_s": 13.391314899997088,
+      "wall_std_s": 0.6813074994680424,
+      "diff_mean_s": 11.67501022000215,
+      "diff_std_s": 0.6647842695918897,
+      "voc_mean_s": 1.716028219999862,
+      "voc_std_s": 0.030224096063968045
+    }
+  },
+  "allocation_and_layout": {
+    "tensor_layouts": {
+      "input_ids": {
+        "shape": [
+          1,
+          8,
+          150
+        ],
+        "stride": [
+          1200,
+          150,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.int64"
+      },
+      "audio_mask": {
+        "shape": [
+          1,
+          150
+        ],
+        "stride": [
+          150,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.bool"
+      },
+      "inputs_embeds": {
+        "shape": [
+          1,
+          150,
+          1024
+        ],
+        "stride": [
+          153600,
+          1024,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.float32"
+      }
+    },
+    "weight_layouts": {
+      "q_proj_weight": {
+        "shape": [
+          2048,
+          1024
+        ],
+        "stride": [
+          1024,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.float32"
+      },
+      "gate_proj_weight": {
+        "shape": [
+          3072,
+          1024
+        ],
+        "stride": [
+          1024,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.float32"
+      },
+      "audio_heads_weight": {
+        "shape": [
+          8200,
+          1024
+        ],
+        "stride": [
+          1024,
+          1
+        ],
+        "contiguous": true,
+        "dtype": "torch.float32"
+      }
+    },
+    "sync_points": [
+      {
+        "location": "OmniVoice.generate -> full_task.get_indices",
+        "type": "Python list comprehension / frame count",
+        "sync": false
+      },
+      {
+        "location": "_generate_iterative -> _get_time_steps.tolist()",
+        "type": "One-time list conversion before loop",
+        "sync": true,
+        "overhead": "<0.01ms"
+      },
+      {
+        "location": "_generate_iterative -> schedules calculation",
+        "type": "Python math.ceil / int casting before loop",
+        "sync": false
+      },
+      {
+        "location": "_generate_iterative -> torch.topk indices",
+        "type": "Native PyTorch tensor indexing in loop",
+        "sync": false
+      },
+      {
+        "location": "_decode_and_post_process -> audio_values.cpu().numpy()",
+        "type": "End-of-generation vocoder export",
+        "sync": true,
+        "overhead": "~0.2ms"
+      }
+    ]
+  },
+  "profiler": {
+    "total_self_cpu_ms": 4344.447300000001,
+    "gemm_self_ms": 2240.077800000002,
+    "gemm_self_pct": 51.56185920358618,
+    "non_gemm_self_ms": 2104.3694999999993,
+    "non_gemm_self_pct": 48.43814079641383,
+    "top_ops": [
+      {
+        "name": "aten::mm",
+        "self_cpu_ms": 2235.758899999999,
+        "self_cpu_pct": 51.462447248468145,
+        "cpu_total_ms": 2236.070400000001,
+        "calls": 197,
+        "cpu_memory_usage_mb": 201.56707763671875
+      },
+      {
+        "name": "aten::mkldnn_convolution",
+        "self_cpu_ms": 1066.1937000000025,
+        "self_cpu_pct": 24.541526835876276,
+        "cpu_total_ms": 1068.4975000000004,
+        "calls": 32,
+        "cpu_memory_usage_mb": 233.20556640625
+      },
+      {
+        "name": "aten::mul",
+        "self_cpu_ms": 188.22929999999536,
+        "self_cpu_pct": 4.332640886218031,
+        "cpu_total_ms": 188.4793999999952,
+        "calls": 444,
+        "cpu_memory_usage_mb": 856.0306854248047
+      },
+      {
+        "name": "aten::_convolution",
+        "self_cpu_ms": 176.58799999999815,
+        "self_cpu_pct": 4.064682750323571,
+        "cpu_total_ms": 1287.240099999999,
+        "calls": 37,
+        "cpu_memory_usage_mb": 271.92431640625
+      },
+      {
+        "name": "aten::_scaled_dot_product_flash_attention_for_cpu",
+        "self_cpu_ms": 126.17430000000063,
+        "self_cpu_pct": 2.904265865994061,
+        "cpu_total_ms": 130.99920000000003,
+        "calls": 28,
+        "cpu_memory_usage_mb": 33.06884765625
+      },
+      {
+        "name": "aten::add",
+        "self_cpu_ms": 112.94310000000061,
+        "self_cpu_pct": 2.5997115904709123,
+        "cpu_total_ms": 118.54189999999898,
+        "calls": 325,
+        "cpu_memory_usage_mb": 473.8346862792969
+      },
+      {
+        "name": "aten::pow",
+        "self_cpu_ms": 89.35570000000295,
+        "self_cpu_pct": 2.0567794665158656,
+        "cpu_total_ms": 89.80350000000065,
+        "calls": 149,
+        "cpu_memory_usage_mb": 354.109375
+      },
+      {
+        "name": "aten::sin",
+        "self_cpu_ms": 85.03349999999851,
+        "self_cpu_pct": 1.9572915523684336,
+        "cpu_total_ms": 85.03349999999851,
+        "calls": 37,
+        "cpu_memory_usage_mb": 271.5654296875
+      },
+      {
+        "name": "aten::copy_",
+        "self_cpu_ms": 55.66799999999916,
+        "self_cpu_pct": 1.2813597715870362,
+        "cpu_total_ms": 55.66799999999916,
+        "calls": 356,
+        "cpu_memory_usage_mb": 0.0
+      },
+      {
+        "name": "aten::cat",
+        "self_cpu_ms": 34.106799999998906,
+        "self_cpu_pct": 0.7850664916570377,
+        "cpu_total_ms": 38.98989999999963,
+        "calls": 114,
+        "cpu_memory_usage_mb": 82.1136474609375
+      },
+      {
+        "name": "aten::silu",
+        "self_cpu_ms": 24.845599999999585,
+        "self_cpu_pct": 0.5718932302389669,
+        "cpu_total_ms": 24.845599999999585,
+        "calls": 28,
+        "cpu_memory_usage_mb": 49.21875
+      },
+      {
+        "name": "aten::matmul",
+        "self_cpu_ms": 15.960500000004613,
+        "self_cpu_pct": 0.367376996378909,
+        "cpu_total_ms": 2257.873300000004,
+        "calls": 198,
+        "cpu_memory_usage_mb": 201.60369873046875
+      },
+      {
+        "name": "aten::neg",
+        "self_cpu_ms": 15.501400000000634,
+        "self_cpu_pct": 0.35680948414314134,
+        "cpu_total_ms": 15.501400000000634,
+        "calls": 58,
+        "cpu_memory_usage_mb": 24.6165771484375
+      },
+      {
+        "name": "aten::sum",
+        "self_cpu_ms": 12.648100000001017,
+        "self_cpu_pct": 0.2911325452146931,
+        "cpu_total_ms": 14.379400000000079,
+        "calls": 114,
+        "cpu_memory_usage_mb": 0.5859375
+      },
+      {
+        "name": "aten::where",
+        "self_cpu_ms": 9.955099999999653,
+        "self_cpu_pct": 0.22914537368193305,
+        "cpu_total_ms": 19.05719999999987,
+        "calls": 57,
+        "cpu_memory_usage_mb": 5.3924560546875
+      }
+    ]
+  }
+}

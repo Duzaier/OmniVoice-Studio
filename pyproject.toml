@@ -75,22 +75,17 @@ Repository = "https://github.com/k2-fsa/OmniVoice"
 "Bug Tracker" = "https://github.com/k2-fsa/OmniVoice/issues"
 
 [tool.uv.sources]
-# Install PyTorch with CUDA support on Linux/Windows (CUDA doesn't exist for Mac).
-# NOTE: We must explicitly request them as `dependencies` above. These improved
-# versions will not be selected if they're only third-party dependencies.
+# CPU-only PyTorch (no CUDA/ROCm) — works on all platforms including AMD GPU on Windows.
 torch = [
-  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cpu" },
 ]
 torchaudio = [
-  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cpu" },
 ]
 
 [[tool.uv.index]]
-name = "pytorch-cuda"
-# Use PyTorch built for NVIDIA Toolkit version 12.8.
-# Available versions: https://pytorch.org/get-started/locally/
-url = "https://download.pytorch.org/whl/cu128"
-# Only use this index when explicitly requested by `tool.uv.sources`.
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv]

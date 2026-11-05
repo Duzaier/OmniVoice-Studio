@@ -1,0 +1,5 @@
+{
+  "summary": "V2 Two-Sequence Forensic Report detailing the architectural reason for batch=2, the role of conditional and unconditional streams, CFG behavior across guidance_scale values, and theoretical compute speedup if fused.",
+  "updatedAt": "2026-09-30T17:26:21.310237400Z",
+  "userFacing": true
+}
