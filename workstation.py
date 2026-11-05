@@ -12,11 +12,13 @@ import re
 import sys
 import site
 import time
+import socket
 import secrets
 import argparse
 import logging
 import subprocess
 import threading
+import urllib.request
 import webbrowser
 from pathlib import Path
 from typing import Optional
@@ -107,38 +109,107 @@ def _ensure_ssh_key(project_root: Path) -> Optional[Path]:
     return None
 
 
-def _run_single_ssh_tunnel(cmd: list, pattern: re.Pattern, label: str, url_file: Path) -> None:
+def _free_port_if_occupied(port: int) -> None:
+    """Terminate any stale process holding `port` so Uvicorn always binds cleanly."""
+    my_pid = os.getpid()
     try:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
+        import psutil
+        for conn in psutil.net_connections(kind="inet"):
+            if conn.laddr and conn.laddr.port == port and conn.pid and conn.pid != my_pid:
+                try:
+                    proc = psutil.Process(conn.pid)
+                    logger.info(f"Freeing port {port} held by stale PID {conn.pid} ({proc.name()})...")
+                    proc.terminate()
+                    proc.wait(timeout=4)
+                except Exception:
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+
+def _wait_for_local_server(port: int, timeout: float = 120.0) -> bool:
+    """Block until 127.0.0.1:port is actively accepting HTTP connections."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=1.0):
+                return True
+        except OSError:
+            time.sleep(0.4)
+    return False
+
+
+def _is_public_url_alive(pub_url: str) -> bool:
+    """Verify the public tunnel actually routes to our running interface and not 'No interface is running right now'."""
+    try:
+        req = urllib.request.Request(
+            f"{pub_url.rstrip('/')}/manifest.json",
+            headers={"User-Agent": "OmniVoice-Tunnel-Watchdog/2.26"},
         )
-        if proc.stdout:
-            for line in proc.stdout:
-                m = pattern.search(line)
-                if m:
-                    _record_public_url(m.group(1), label, url_file)
-    except Exception as e:
-        logger.debug(f"Tunnel {label} skipped: {e}")
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            if resp.status == 200 and "OmniVoice" in body and "No interface is running" not in body:
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _run_single_ssh_tunnel(cmd: list, pattern: re.Pattern, label: str, port: int, url_file: Path) -> None:
+    if not _wait_for_local_server(port):
+        return
+    while True:
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            if proc.stdout:
+                for line in proc.stdout:
+                    m = pattern.search(line)
+                    if m:
+                        _record_public_url(m.group(1), label, url_file)
+            proc.wait()
+        except Exception as e:
+            logger.debug(f"Tunnel {label} skipped: {e}")
+        time.sleep(5)
 
 
 def _run_gradio_frpc_tunnel(port: int, url_file: Path) -> None:
-    try:
-        from gradio.networking import setup_tunnel
-        share_url = setup_tunnel("127.0.0.1", port, secrets.token_urlsafe(32), None, None)
-        if share_url:
-            _record_public_url(share_url, "gradio.live", url_file)
-    except Exception as e:
-        logger.debug(f"Gradio tunnel note: {e}")
+    if not _wait_for_local_server(port):
+        return
+    while True:
+        try:
+            from gradio.networking import setup_tunnel
+            share_url = setup_tunnel("127.0.0.1", port, secrets.token_urlsafe(32), None, None)
+            if share_url:
+                _record_public_url(share_url, "gradio.live", url_file)
+                # Watchdog loop: verify tunnel stays connected to live interface
+                failures = 0
+                while True:
+                    time.sleep(30)
+                    if _is_public_url_alive(share_url):
+                        failures = 0
+                    else:
+                        failures += 1
+                        if failures >= 2:
+                            logger.warning(f"Gradio tunnel {share_url} disconnected; re-establishing...")
+                            break
+        except Exception as e:
+            logger.debug(f"Gradio tunnel note: {e}")
+        time.sleep(3)
 
 
 def _start_https_tunnels(port: int, project_root: Path) -> None:
-    """Starts triple zero-config HTTPS reverse tunnels (localhost.run + pinggy.io + gradio.live)."""
+    """Starts triple zero-config HTTPS reverse tunnels once 127.0.0.1:port is listening."""
     url_file = project_root / "logs" / "public_urls.txt"
     url_file.parent.mkdir(parents=True, exist_ok=True)
     for target in (url_file, SCRATCH_URL_FILE):
@@ -148,7 +219,7 @@ def _start_https_tunnels(port: int, project_root: Path) -> None:
         except Exception:
             pass
 
-    # Tunnel 1: Gradio official share tunnel
+    # Tunnel 1: Gradio official share tunnel (with auto-reconnect watchdog)
     threading.Thread(
         target=_run_gradio_frpc_tunnel,
         args=(port, url_file),
@@ -175,7 +246,7 @@ def _start_https_tunnels(port: int, project_root: Path) -> None:
     ]
     threading.Thread(
         target=_run_single_ssh_tunnel,
-        args=(cmd_lhr, re.compile(r"(https://[a-zA-Z0-9.-]+\.lhr\.life)"), "localhost.run", url_file),
+        args=(cmd_lhr, re.compile(r"(https://[a-zA-Z0-9.-]+\.lhr\.life)"), "localhost.run", port, url_file),
         daemon=True,
     ).start()
 
@@ -193,7 +264,7 @@ def _start_https_tunnels(port: int, project_root: Path) -> None:
     ]
     threading.Thread(
         target=_run_single_ssh_tunnel,
-        args=(cmd_pinggy, re.compile(r"(https://[a-zA-Z0-9.-]+\.pinggy\.link)"), "pinggy.io", url_file),
+        args=(cmd_pinggy, re.compile(r"(https://[a-zA-Z0-9.-]+\.pinggy\.link)"), "pinggy.io", port, url_file),
         daemon=True,
     ).start()
 
@@ -216,7 +287,10 @@ def main():
     print("  Optimized for Dell Inspiron 15 3515 (AMD Ryzen 5 3450U + Vega 8)", flush=True)
     print("=" * 72, flush=True)
 
-    # 1. Start background HTTPS public tunnels IMMEDIATELY so URLs are ready within 3s
+    # 0. Free port if held by a stale instance so Uvicorn never fails with Address Already In Use
+    _free_port_if_occupied(args.port)
+
+    # 1. Start background HTTPS public tunnels (waits until local server is accepting connections)
     if not args.no_tunnel:
         _start_https_tunnels(args.port, _PROJECT_ROOT)
 

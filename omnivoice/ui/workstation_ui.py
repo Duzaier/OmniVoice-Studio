@@ -592,7 +592,7 @@ def build_workstation_ui(engine: OmniVoiceEngine) -> gr.Blocks:
                     cleaned_txt = res.cleaned_text
                     audio_file_path = res.output_path
                     if not audio_file_path or not Path(audio_file_path).exists():
-                        audio_file_path = str(storage.get_temp_dir() / f"studio_tts_{int(time.time())}.wav")
+                        audio_file_path = str(storage.cache_temp_dir / f"studio_tts_{int(time.time())}.wav")
                         sf.write(audio_file_path, res.audio, res.sample_rate)
 
                 vid_path = None

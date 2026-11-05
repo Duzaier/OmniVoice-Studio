@@ -61,6 +61,14 @@ class StorageManager:
 
         logger.info(f"[StorageManager] Active Workstation Data Directory: {self.base_dir}")
 
+    def get_outputs_dir(self) -> Path:
+        self.outputs_dir.mkdir(parents=True, exist_ok=True)
+        return self.outputs_dir
+
+    def get_temp_dir(self) -> Path:
+        self.cache_temp_dir.mkdir(parents=True, exist_ok=True)
+        return self.cache_temp_dir
+
     def _redirect_system_temp_to_safe_drive(self):
         """Redirect Python tempfile, OS TEMP/TMP, and GRADIO_TEMP_DIR to self.cache_temp_dir."""
         safe_tmp = str(self.cache_temp_dir.resolve())

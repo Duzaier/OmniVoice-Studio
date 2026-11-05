@@ -1053,7 +1053,7 @@ def attach_mobile_pwa_routes(app: FastAPI, engine: OmniVoiceEngine, port: int = 
         lan_urls = [f"http://{ip}:{port}" for ip in ips]
         res_info = get_detailed_resource_usage(str(engine.storage.base_dir))
 
-        out_dir = engine.storage.get_outputs_dir()
+        out_dir = engine.storage.outputs_dir
         recent = []
         if out_dir.exists():
             files = sorted(
@@ -1107,8 +1107,8 @@ def attach_mobile_pwa_routes(app: FastAPI, engine: OmniVoiceEngine, port: int = 
         do_norm = normalize_numbers.lower() in ("true", "1", "yes", "on")
         voice_arg = None if voice in (None, "", "[Giọng Mặc Định]") else voice
 
-        temp_dir = engine.storage.get_temp_dir()
-        out_dir = engine.storage.get_outputs_dir()
+        temp_dir = engine.storage.cache_temp_dir
+        out_dir = engine.storage.outputs_dir
 
         bg_path = None
         if bg_image and bg_image.filename:
@@ -1187,7 +1187,7 @@ def attach_mobile_pwa_routes(app: FastAPI, engine: OmniVoiceEngine, port: int = 
         ref_text: str = Form("Xin chào các bạn."),
         audio: UploadFile = File(...),
     ):
-        tmp_audio = engine.storage.get_temp_dir() / f"upload_clone_{int(time.time())}_{Path(audio.filename or 'ref.wav').name}"
+        tmp_audio = engine.storage.cache_temp_dir / f"upload_clone_{int(time.time())}_{Path(audio.filename or 'ref.wav').name}"
         with open(tmp_audio, "wb") as f:
             shutil.copyfileobj(audio.file, f)
         profile = engine.voice_manager.create_or_update_voice(
@@ -1209,7 +1209,7 @@ def attach_mobile_pwa_routes(app: FastAPI, engine: OmniVoiceEngine, port: int = 
     @app.get("/api/mobile/media/{filename}")
     async def mobile_media(filename: str):
         safe_name = Path(filename).name
-        for c in (engine.storage.get_outputs_dir() / safe_name, engine.storage.get_temp_dir() / safe_name):
+        for c in (engine.storage.outputs_dir / safe_name, engine.storage.cache_temp_dir / safe_name, engine.storage.temp_dir / safe_name):
             if c.exists() and c.is_file():
                 media_type = "video/mp4" if c.suffix.lower() == ".mp4" else "audio/wav"
                 return FileResponse(str(c), media_type=media_type, filename=safe_name)

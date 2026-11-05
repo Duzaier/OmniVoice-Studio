@@ -1,0 +1,11 @@
+{
+  "name": "Nam",
+  "folder_name": "Nam",
+  "ref_audio_path": "D:\\ALL PROJECT\\OJT PROJECT\\OmniVoice\\voices\\Nam\\reference.wav",
+  "ref_text": "Xin chào các bạn, hôm nay trời rất đẹp.",
+  "prompt_path": "D:\\ALL PROJECT\\OJT PROJECT\\OmniVoice\\voices\\Nam\\prompt.pt",
+  "fingerprint": "65ceae54390e1dbd",
+  "created_at": "2026-11-05T11:53:33.079270",
+  "description": "Minimal Studio",
+  "language": "Vietnamese"
+}
