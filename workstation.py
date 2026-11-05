@@ -18,6 +18,7 @@ import subprocess
 import threading
 import webbrowser
 from pathlib import Path
+from typing import Optional
 
 _THIS_FILE = Path(__file__).resolve()
 _PROJECT_ROOT = _THIS_FILE.parent.parent.parent if _THIS_FILE.parent.name == "cli" else _THIS_FILE.parent
@@ -94,8 +95,13 @@ def _run_single_ssh_tunnel(cmd: list, pattern: re.Pattern, label: str, url_file:
                     try:
                         existing = url_file.read_text(encoding="utf-8") if url_file.exists() else ""
                         if pub_url not in existing:
+                            line_out = f"[{label}] Desktop: {pub_url} | Mobile: {pub_url}/mobile\n"
                             with open(url_file, "a", encoding="utf-8") as f:
-                                f.write(f"[{label}] Desktop: {pub_url} | Mobile: {pub_url}/mobile\n")
+                                f.write(line_out)
+                            scratch_url_file = Path(r"C:\Users\Duzaier\.gemini\antigravity\brain\933a6da8-dff8-47f0-b259-95c8ca63bf7a\scratch\public_urls.txt")
+                            if scratch_url_file.parent.exists():
+                                with open(scratch_url_file, "a", encoding="utf-8") as sf:
+                                    sf.write(line_out)
                     except Exception:
                         pass
                     print("\n" + "=" * 72, flush=True)
