@@ -4,7 +4,7 @@ OmniVoice Production Workstation & Mobile PWA Launcher (V2.26 Multi-Environment 
 Starts the FastAPI + Gradio server in production mode with:
 - `/`            -> Swiss-Minimalist Unified Studio (Desktop + Mobile responsive)
 - `/mobile`      -> Standalone Installable Mobile PWA (Service Worker + Offline Shell + Full Feature Parity)
-- Public HTTPS   -> Automatic dual HTTPS tunnels (`localhost.run` + `pinggy.io`) for instant global access
+- Public HTTPS   -> Automatic triple HTTPS tunnels (`gradio.live` + `localhost.run` + `pinggy.io`) for instant global access
 """
 
 import os
@@ -12,6 +12,7 @@ import re
 import sys
 import site
 import time
+import secrets
 import argparse
 import logging
 import subprocess
@@ -57,21 +58,52 @@ from omnivoice.ui.mobile_pwa import attach_mobile_pwa_routes, get_lan_ips, set_p
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("OmniVoiceWorkstation")
 
+SCRATCH_URL_FILE = Path(r"C:\Users\Duzaier\.gemini\antigravity\brain\933a6da8-dff8-47f0-b259-95c8ca63bf7a\scratch\public_urls.txt")
+
+
+def _record_public_url(pub_url: str, label: str, url_file: Path) -> None:
+    pub_url = pub_url.strip().rstrip("/")
+    set_public_tunnel_url(pub_url)
+    line_out = f"[{label}] Desktop: {pub_url} | Mobile: {pub_url}/mobile\n"
+    for target in (url_file, SCRATCH_URL_FILE):
+        try:
+            if target.parent.exists():
+                existing = target.read_text(encoding="utf-8") if target.exists() else ""
+                if pub_url not in existing:
+                    with open(target, "a", encoding="utf-8") as f:
+                        f.write(line_out)
+        except Exception:
+            pass
+    print("\n" + "=" * 72, flush=True)
+    print(f"  🌐 [{label}] PUBLIC DESKTOP STUDIO URL : {pub_url}", flush=True)
+    print(f"  📱 [{label}] PUBLIC MOBILE APP URL     : {pub_url}/mobile", flush=True)
+    print("=" * 72 + "\n", flush=True)
+
 
 def _ensure_ssh_key(project_root: Path) -> Optional[Path]:
-    key_path = project_root / "cache" / "tunnel_key"
+    # Prefer key in scratch directory (inside user profile) and lock NTFS ACLs via icacls
+    key_path = SCRATCH_URL_FILE.parent / "tunnel_key"
+    if not key_path.exists():
+        key_path = project_root / "cache" / "tunnel_key"
+    if not key_path.exists():
+        keygen = r"C:\WINDOWS\System32\OpenSSH\ssh-keygen.exe"
+        if Path(keygen).exists():
+            try:
+                key_path.parent.mkdir(parents=True, exist_ok=True)
+                subprocess.run([keygen, "-t", "ed25519", "-f", str(key_path), "-N", ""], capture_output=True, timeout=10)
+            except Exception:
+                pass
     if key_path.exists():
+        try:
+            username = os.environ.get("USERNAME", "Duzaier")
+            subprocess.run(
+                ["icacls", str(key_path), "/inheritance:r", "/grant:r", f"{username}:R"],
+                capture_output=True,
+                timeout=5,
+            )
+        except Exception:
+            pass
         return key_path
-    keygen = r"C:\WINDOWS\System32\OpenSSH\ssh-keygen.exe"
-    if not Path(keygen).exists():
-        return None
-    try:
-        key_path.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run([keygen, "-t", "ed25519", "-f", str(key_path), "-N", ""], capture_output=True, timeout=10)
-        if key_path.exists():
-            return key_path
-    except Exception:
-        pass
     return None
 
 
@@ -90,30 +122,39 @@ def _run_single_ssh_tunnel(cmd: list, pattern: re.Pattern, label: str, url_file:
             for line in proc.stdout:
                 m = pattern.search(line)
                 if m:
-                    pub_url = m.group(1).strip().rstrip("/")
-                    set_public_tunnel_url(pub_url)
-                    try:
-                        existing = url_file.read_text(encoding="utf-8") if url_file.exists() else ""
-                        if pub_url not in existing:
-                            line_out = f"[{label}] Desktop: {pub_url} | Mobile: {pub_url}/mobile\n"
-                            with open(url_file, "a", encoding="utf-8") as f:
-                                f.write(line_out)
-                            scratch_url_file = Path(r"C:\Users\Duzaier\.gemini\antigravity\brain\933a6da8-dff8-47f0-b259-95c8ca63bf7a\scratch\public_urls.txt")
-                            if scratch_url_file.parent.exists():
-                                with open(scratch_url_file, "a", encoding="utf-8") as sf:
-                                    sf.write(line_out)
-                    except Exception:
-                        pass
-                    print("\n" + "=" * 72, flush=True)
-                    print(f"  🌐 [{label}] PUBLIC DESKTOP STUDIO URL : {pub_url}", flush=True)
-                    print(f"  📱 [{label}] PUBLIC MOBILE APP URL     : {pub_url}/mobile", flush=True)
-                    print("=" * 72 + "\n", flush=True)
+                    _record_public_url(m.group(1), label, url_file)
     except Exception as e:
         logger.debug(f"Tunnel {label} skipped: {e}")
 
 
+def _run_gradio_frpc_tunnel(port: int, url_file: Path) -> None:
+    try:
+        from gradio.networking import setup_tunnel
+        share_url = setup_tunnel("127.0.0.1", port, secrets.token_urlsafe(32), None, None)
+        if share_url:
+            _record_public_url(share_url, "gradio.live", url_file)
+    except Exception as e:
+        logger.debug(f"Gradio tunnel note: {e}")
+
+
 def _start_https_tunnels(port: int, project_root: Path) -> None:
-    """Starts dual zero-config SSH reverse tunnels (localhost.run + pinggy.io) with an explicit SSH key."""
+    """Starts triple zero-config HTTPS reverse tunnels (localhost.run + pinggy.io + gradio.live)."""
+    url_file = project_root / "logs" / "public_urls.txt"
+    url_file.parent.mkdir(parents=True, exist_ok=True)
+    for target in (url_file, SCRATCH_URL_FILE):
+        try:
+            if target.parent.exists():
+                target.write_text("", encoding="utf-8")
+        except Exception:
+            pass
+
+    # Tunnel 1: Gradio official share tunnel
+    threading.Thread(
+        target=_run_gradio_frpc_tunnel,
+        args=(port, url_file),
+        daemon=True,
+    ).start()
+
     ssh_bin = r"C:\WINDOWS\System32\OpenSSH\ssh.exe"
     if not Path(ssh_bin).exists():
         return
@@ -121,16 +162,10 @@ def _start_https_tunnels(port: int, project_root: Path) -> None:
     key_path = _ensure_ssh_key(project_root)
     key_args = ["-i", str(key_path)] if key_path else []
 
-    url_file = project_root / "logs" / "public_urls.txt"
-    url_file.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        url_file.write_text("", encoding="utf-8")
-    except Exception:
-        pass
-
-    # Tunnel 1: localhost.run
+    # Tunnel 2: localhost.run (-T disables pseudo-tty so headless subprocess works)
     cmd_lhr = [
         ssh_bin,
+        "-T",
         *key_args,
         "-o", "StrictHostKeyChecking=no",
         "-o", "UserKnownHostsFile=NUL",
@@ -144,9 +179,10 @@ def _start_https_tunnels(port: int, project_root: Path) -> None:
         daemon=True,
     ).start()
 
-    # Tunnel 2: pinggy.io
+    # Tunnel 3: pinggy.io (-T disables pseudo-tty)
     cmd_pinggy = [
         ssh_bin,
+        "-T",
         *key_args,
         "-p", "443",
         "-o", "StrictHostKeyChecking=no",
@@ -180,11 +216,15 @@ def main():
     print("  Optimized for Dell Inspiron 15 3515 (AMD Ryzen 5 3450U + Vega 8)", flush=True)
     print("=" * 72, flush=True)
 
-    # 1. Initialize Engine
+    # 1. Start background HTTPS public tunnels IMMEDIATELY so URLs are ready within 3s
+    if not args.no_tunnel:
+        _start_https_tunnels(args.port, _PROJECT_ROOT)
+
+    # 2. Initialize Engine
     engine = OmniVoiceEngine.get_instance(device=args.device)
     engine.initialize()
 
-    # 2. Build Gradio UI
+    # 3. Build Gradio UI
     demo = build_workstation_ui(engine)
     demo.queue(max_size=10)
 
@@ -194,10 +234,6 @@ def main():
     print(f"  📶 Desktop Studio (Wi-Fi)  : http://{primary_lan}:{args.port}", flush=True)
     print(f"  📲 Mobile PWA (Wi-Fi)      : http://{primary_lan}:{args.port}/mobile", flush=True)
     print("-" * 72 + "\n", flush=True)
-
-    # 3. Start background HTTPS public tunnels for global Desktop & Mobile access
-    if not args.no_tunnel:
-        _start_https_tunnels(args.port, _PROJECT_ROOT)
 
     # 4. Create FastAPI App with `/mobile` PWA, `/sw.js`, `/manifest.json`, and `/` Gradio Studio
     app = FastAPI(title="OmniVoice Production Studio & Mobile PWA")
