@@ -1,3 +1,13 @@
+---
+title: OmniVoice Studio & Mobile PWA
+emoji: 🎙️
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # OmniVoice 🌍
 
 <p align="center">
