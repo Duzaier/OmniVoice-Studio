@@ -121,64 +121,75 @@ def deploy_to_huggingface_spaces() -> dict:
     repo_id = f"{hf_user}/{space_name}"
     print(f"\n  [+] Dang khoi tao Space 24/7: https://huggingface.co/spaces/{repo_id} ...")
 
-    api.create_repo(
-        repo_id=repo_id,
-        repo_type="space",
-        space_sdk="docker",
-        exist_ok=True,
-        private=False,
-    )
+    try:
+        api.create_repo(
+            repo_id=repo_id,
+            repo_type="space",
+            space_sdk="docker",
+            exist_ok=True,
+            private=False,
+        )
 
-    print("  [+] Dang tai ma nguon Desktop Studio + Mobile PWA len Hugging Face Spaces...")
-    api.upload_folder(
-        folder_path=str(PROJECT_ROOT),
-        repo_id=repo_id,
-        repo_type="space",
-        allow_patterns=[
-            "README.md",
-            "DESIGN.md",
-            "Dockerfile",
-            "docker-compose.yml",
-            "requirements-cloud.txt",
-            "pyproject.toml",
-            "app.py",
-            "workstation.py",
-            "omnivoice/**",
-            "docs/**",
-        ],
-        ignore_patterns=[
-            ".venv/**",
-            "models/**",
-            "cache/**",
-            "outputs/**",
-            "logs/**",
-            "temp/**",
-            "debug/**",
-            "voices/*.pt",
-            "voices/*.wav",
-            "__pycache__/**",
-            "*.pyc",
-            ".git/**",
-        ],
-        commit_message="Deploy OmniVoice Studio & Mobile PWA V2.26 (24/7 Cloud Edition)",
-    )
+        print("  [+] Dang tai ma nguon Desktop Studio + Mobile PWA len Hugging Face Spaces...")
+        api.upload_folder(
+            folder_path=str(PROJECT_ROOT),
+            repo_id=repo_id,
+            repo_type="space",
+            allow_patterns=[
+                "README.md",
+                "DESIGN.md",
+                "Dockerfile",
+                "docker-compose.yml",
+                "requirements-cloud.txt",
+                "pyproject.toml",
+                "app.py",
+                "workstation.py",
+                "omnivoice/**",
+                "docs/**",
+            ],
+            ignore_patterns=[
+                ".venv/**",
+                "models/**",
+                "cache/**",
+                "outputs/**",
+                "logs/**",
+                "temp/**",
+                "debug/**",
+                "voices/*.pt",
+                "voices/*.wav",
+                "__pycache__/**",
+                "*.pyc",
+                ".git/**",
+            ],
+            commit_message="Deploy OmniVoice Studio & Mobile PWA V2.26 (24/7 Cloud Edition)",
+        )
 
-    subdomain = f"{hf_user.lower()}-{space_name}".replace("_", "-")
-    direct_url = f"https://{subdomain}.hf.space"
-    mobile_url = f"https://{subdomain}.hf.space/mobile"
-    portal_url = f"https://huggingface.co/spaces/{repo_id}"
+        subdomain = f"{hf_user.lower()}-{space_name}".replace("_", "-")
+        direct_url = f"https://{subdomain}.hf.space"
+        mobile_url = f"https://{subdomain}.hf.space/mobile"
+        portal_url = f"https://huggingface.co/spaces/{repo_id}"
 
-    print("\n  ✅ DA DEPLOY THANH CONG LEN HUGGING FACE SPACES (CHAY 24/7):")
-    print(f"     🌐 Link Desktop Studio 24/7 : {direct_url}")
-    print(f"     📱 Link Mobile App PWA 24/7 : {mobile_url}")
-    print(f"     🤗 Trang quan ly HF Space   : {portal_url}")
+        print("\n  ✅ DA DEPLOY THANH CONG LEN HUGGING FACE SPACES (CHAY 24/7):")
+        print(f"     🌐 Link Desktop Studio 24/7 : {direct_url}")
+        print(f"     📱 Link Mobile App PWA 24/7 : {mobile_url}")
+        print(f"     🤗 Trang quan ly HF Space   : {portal_url}")
 
-    return {
-        "hf_user": hf_user,
-        "direct_url": direct_url,
-        "mobile_url": mobile_url,
-        "portal_url": portal_url,
-    }
+        return {
+            "hf_user": hf_user,
+            "direct_url": direct_url,
+            "mobile_url": mobile_url,
+            "portal_url": portal_url,
+        }
+    except Exception as e:
+        err_msg = str(e)
+        if "402" in err_msg or "Payment Required" in err_msg or "PRO subscription" in err_msg:
+            print("\n  [LƯU Ý CHÍNH SÁCH HUGGING FACE]")
+            print("  Hugging Face vừa cập nhật chính sách mới: Tài khoản miễn phí (Free) hiện chỉ tạo được")
+            print("  Space dạng tĩnh (Static), còn tạo Space Docker/Gradio mới yêu cầu tài khoản Pro ($9/tháng).")
+            print("  -> Chuyển sang triển khai GitHub Pages và tối ưu hóa kết nối cho bạn...")
+        else:
+            print(f"\n  [WARN] Khong the deploy len HF Spaces: {e}")
+        return {}
 
 
 def deploy_to_github_and_pages(hf_info: dict) -> dict:
